@@ -8,6 +8,10 @@ const getMoodleConfig = async () => {
 
   const config = {};
   settings.forEach(s => config[s.key] = s.value);
+  
+  if (!config.MOODLE_URL) config.MOODLE_URL = process.env.MOODLE_URL;
+  if (!config.MOODLE_API_TOKEN) config.MOODLE_API_TOKEN = process.env.MOODLE_API_TOKEN;
+  
   return config;
 };
 
