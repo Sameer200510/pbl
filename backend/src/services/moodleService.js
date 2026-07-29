@@ -60,7 +60,7 @@ const syncMoodlePassword = async (moodleId, newPassword) => {
     });
 
     if (response.data && response.data.exception) {
-      console.error(`[MoodleSync] Error syncing password for ${moodleId}:`, response.data.message);
+      console.error(`[MoodleSync] Error syncing password for ${moodleId}:`, JSON.stringify(response.data));
       return false;
     }
 
