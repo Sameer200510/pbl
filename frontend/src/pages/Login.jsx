@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import logoImg from '../assets/Graphic-Era-University-GEU-Dehradun-Logo.jpg';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -103,7 +104,7 @@ const Login = () => {
           
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 mb-4">
-              <img src="/src/assets/Graphic-Era-University-GEU-Dehradun-Logo.jpg" alt="GEU Logo" className="w-full h-full object-contain" />
+              <img src={logoImg} alt="GEU Logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">PBL Connect</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Sign in to your unified workspace</p>
