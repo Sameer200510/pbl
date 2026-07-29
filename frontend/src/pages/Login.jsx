@@ -78,6 +78,14 @@ const Login = () => {
 
   const handleCreatePassword = async (e) => {
     e.preventDefault();
+
+    // Moodle strong password validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      setError('Password must be at least 8 characters, include an uppercase letter, a lowercase letter, a number, and a special character (@$!%*?&#).');
+      return;
+    }
+
     setLoading(true); setError(''); setMsg('');
     try {
       await axios.post('/api/auth/create-password', { resetToken, newPassword });
