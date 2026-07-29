@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  FACULTY
+  STUDENT
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(STUDENT)
+  isVerified    Boolean  @default(false)
+  otp           String?
+  otpExpiresAt  DateTime?
+  requiresPasswordChange Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  facultyProfile Faculty?
+  studentProfile Student?
+}
+
+model Faculty {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department String?
+  moodleId   String?  @unique
+  venue      String?
+  
+  mentoredTeams Team[] @relation("TeamMentor")
+  phaseEvaluations TeamPhaseEvaluator[]
+  evaluations   Evaluation[]
+  mentorGrades  MentorGrade[]
+  pblFaculties  PblFaculty[]
+  reevaluationAssignments ReevaluationAssignment[]
+  interactions  Interaction[]
+}
+
+model Student {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollmentNumber String   @unique
+  section          String
+  semester         Int      @default(1)
+  phoneNumber      String?
+  moodleId         String?
+
+  ledTeams    Team[]       @relation("TeamLeader")
+  teamMembers TeamMember[]
+  reevaluationAssignments ReevaluationAssignment[]
+  interactionRecords InteractionRecord[]
+}
+
+model Pbl {
+  id                  String   @id @default(uuid())
+  subject             String
+  subjectShort        String
+  semester            Int
+  session             String   @default("2024-2025")
+  description         String?
+  instructions        String?
+  teamFormationStart  DateTime?
+  teamFormationEnd    DateTime?
+  isArchived          Boolean  @default(false)
+  createdBy           String?  // Admin User ID
+  registrationSchema  Json?    // Dynamic form fields defined by Admin
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  teams         Team[]
+  phases        Phase[]
+  pblFaculties  PblFaculty[]
+}
+
+model Team {
+  id                      String   @id @default(uuid())
+  pblId                   String
+  pbl                     Pbl      @relation(fields: [pblId], references: [id], onDelete: Cascade)
+  teamIdFormatted         String   @unique // e.g. OS-3-T001
+  leaderId                String
+  leader                  Student  @relation("TeamLeader", fields: [leaderId], references: [id])
+  mentorId                String?
+  mentor                  Faculty? @relation("TeamMentor", fields: [mentorId], references: [id])
+  mentorIdFormatted       String?  // e.g. M-OS-001
+  projectLevel            String?  // e.g. "Basic", "Intermediate", "Advanced", "Expert"
+  customRegistrationData  Json?    // For dynamic fields
+  createdAt               DateTime @default(now())
+
+  members          TeamMember[]
+  submissions      Submission[]
+  phaseEvaluators  TeamPhaseEvaluator[]
+  interactions     Interaction[]
+}
+
+model TeamMember {
+  id        String  @id @default(uuid())
+  teamId    String
+  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status    String  @default("PENDING") // PENDING, ACCEPTED
+
+  @@unique([teamId, studentId])
+}
+
+model Phase {
+  id                 String   @id @default(uuid())
+  pblId              String
+  pbl                Pbl      @relation(fields: [pblId], references: [id], onDelete: Cascade)
+  phaseNumber        Int
+  instructions       String?
+  evaluationCriteria Json?    // Array of objects defining dynamic criteria
+  moodleAssignmentId String?  // ID of the assignment in Moodle
+  submissionStart    DateTime?
+  submissionEnd      DateTime?
+
+  submissions      Submission[]
+  evaluations      Evaluation[]
+  teamEvaluators   TeamPhaseEvaluator[]
+  reevaluationAssignments ReevaluationAssignment[]
+
+  @@unique([pblId, phaseNumber])
+}
+
+model Submission {
+  id           String   @id @default(uuid())
+  teamId       String
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  phaseId      String
+  phase        Phase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  synopsisUrl  String?
+  fileUrls     Json?    // PDF or DOCX links
+  status       String   @default("PENDING") // PENDING, GRADED, EVALUATED
+  submittedAt  DateTime @default(now())
+
+  mentorGrades MentorGrade[]
+}
+
+model MentorGrade {
+  id           String     @id @default(uuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  mentorId     String
+  mentor       Faculty    @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  grade        Int        // 0 or 1
+  remarks      String?
+  gradedAt     DateTime   @default(now())
+
+  @@unique([submissionId, mentorId])
+}
+
+model Evaluation {
+  id          String   @id @default(uuid())
+  phaseId     String
+  phase       Phase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  studentId   String
+  evaluatorId String
+  evaluator   Faculty  @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
+  marksData   Json     // Dynamic marks entry
+  totalMarks  Float
+  evaluatedAt DateTime @default(now())
+
+  @@unique([phaseId, studentId, evaluatorId])
+}
+
+model TeamPhaseEvaluator {
+  id          String   @id @default(uuid())
+  teamId      String
+  phaseId     String
+  evaluatorId String
+  status      String   @default("PENDING") // PENDING, EVALUATED
+  remarks     String?  @db.Text
+
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  phase       Phase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  evaluator   Faculty  @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, phaseId])
+}
+
+model ReevaluationAssignment {
+  id          String   @id @default(uuid())
+  studentId   String
+  phaseId     String
+  evaluatorId String
+  status      String   @default("PENDING") // PENDING, EVALUATED
+  remarks     String?  @db.Text
+
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  phase       Phase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  evaluator   Faculty  @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, phaseId])
+}
+
+model SystemSettings {
+  id                 String   @id @default("singleton")
+  awsAccessKeyId     String?
+  awsSecretAccessKey String?
+  awsRegion          String?
+  awsS3Bucket        String?
+  useS3Storage       Boolean  @default(false)
+  updatedAt          DateTime @updatedAt
+}
+
+model PblFaculty {
+  id                   String  @id @default(uuid())
+  pblId                String
+  facultyId            String
+  mentorIdFormatted    String?
+  evaluatorIdFormatted String?
+
+  pbl       Pbl    @relation(fields: [pblId], references: [id], onDelete: Cascade)
+  faculty   Faculty @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+
+  @@unique([pblId, facultyId])
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Interaction {
+  id          String   @id @default(uuid())
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  mentorId    String
+  mentor      Faculty  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  visitNumber Int      // 1 to 8
+  date        DateTime @default(now())
+
+  studentRecords InteractionRecord[]
+
+  @@unique([teamId, visitNumber])
+}
+
+model InteractionRecord {
+  id            String      @id @default(uuid())
+  interactionId String
+  interaction   Interaction @relation(fields: [interactionId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  isPresent     Boolean
+  remark        String?
+
+  @@unique([interactionId, studentId])
+}
