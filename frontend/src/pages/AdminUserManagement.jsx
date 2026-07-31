@@ -19,6 +19,8 @@ const AdminUserManagement = () => {
     username: '', firstname: '', lastname: '', email: '', role1: 'student', course1: '', password: ''
   });
 
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+
   const getAuthHeader = () => ({
     headers: { Authorization: `Bearer ${JSON.parse(localStorage.getItem('userInfo'))?.token}` }
   });
@@ -117,16 +119,55 @@ const AdminUserManagement = () => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedUserIds.length} selected user(s)?`)) return;
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/bulk-delete`, 
+        { userIds: selectedUserIds },
+        getAuthHeader()
+      );
+      alert(res.data.message);
+      setSelectedUserIds([]);
+      fetchUsers();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedUserIds(users.map(u => u.id));
+    } else {
+      setSelectedUserIds([]);
+    }
+  };
+
+  const handleSelectUser = (id) => {
+    setSelectedUserIds(prev => 
+      prev.includes(id) ? prev.filter(userId => userId !== id) : [...prev, id]
+    );
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">User Management</h1>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-        >
-          + Add User Manually
-        </button>
+        <div className="flex gap-3">
+          {selectedUserIds.length > 0 && (
+            <button 
+              onClick={handleBulkDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Delete Selected ({selectedUserIds.length})
+            </button>
+          )}
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            + Add User Manually
+          </button>
+        </div>
       </div>
 
       {/* Bulk Upload Section */}
@@ -160,6 +201,14 @@ const AdminUserManagement = () => {
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <input 
+                  type="checkbox" 
+                  checked={users.length > 0 && selectedUserIds.length === users.length}
+                  onChange={handleSelectAll}
+                  className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                />
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
@@ -168,12 +217,20 @@ const AdminUserManagement = () => {
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {loading ? (
-              <tr><td colSpan="4" className="px-6 py-4 text-center dark:text-gray-300">Loading...</td></tr>
+              <tr><td colSpan="5" className="px-6 py-4 text-center dark:text-gray-300">Loading...</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan="4" className="px-6 py-4 text-center dark:text-gray-300">No users found</td></tr>
+              <tr><td colSpan="5" className="px-6 py-4 text-center dark:text-gray-300">No users found</td></tr>
             ) : (
               users.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedUserIds.includes(user.id)}
+                      onChange={() => handleSelectUser(user.id)}
+                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">{user.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{user.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">

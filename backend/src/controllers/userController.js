@@ -312,11 +312,40 @@ const resetUserPassword = async (req, res, next) => {
   }
 };
 
+// @desc    Bulk delete users
+// @route   POST /api/users/bulk-delete
+// @access  Private/Admin
+const bulkDeleteUsers = async (req, res, next) => {
+  try {
+    const { userIds } = req.body;
+
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ message: 'No user IDs provided' });
+    }
+
+    // Check if user is trying to delete themselves
+    if (userIds.includes(req.user.id)) {
+      return res.status(400).json({ message: 'You cannot delete your own account' });
+    }
+
+    const deleteResult = await prisma.user.deleteMany({
+      where: {
+        id: { in: userIds }
+      }
+    });
+
+    res.json({ message: `${deleteResult.count} users deleted successfully` });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllUsers,
   createUser,
   bulkUploadUsers,
   updateUser,
   deleteUser,
-  resetUserPassword
+  resetUserPassword,
+  bulkDeleteUsers
 };
