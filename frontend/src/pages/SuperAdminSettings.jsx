@@ -82,7 +82,7 @@ const SuperAdminSettings = () => {
                 value={moodleUrl} 
                 onChange={(e) => setMoodleUrl(e.target.value)}
                 placeholder="e.g. https://moodle.geu.ac.in"
-                className="w-full px-4 py-3 border rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 font-medium dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
               />
               <p className="text-xs text-gray-500 mt-2">The root URL of your Moodle installation without a trailing slash.</p>
             </div>
@@ -94,7 +94,7 @@ const SuperAdminSettings = () => {
                 value={moodleToken} 
                 onChange={(e) => setMoodleToken(e.target.value)}
                 placeholder="Paste your 32-character Moodle token here"
-                className="w-full px-4 py-3 border rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none font-mono"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 font-mono font-medium dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
               />
               <p className="text-xs text-gray-500 mt-2">Generate this token in Moodle: Site administration &gt; Server &gt; Web services &gt; Manage tokens.</p>
             </div>
