@@ -1,0 +1,322 @@
+const prisma = require('../config/db');
+const bcrypt = require('bcrypt');
+const xlsx = require('xlsx');
+const moodleService = require('../services/moodleService');
+
+const toRoman = (num) => {
+  const roman = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII' };
+  return roman[num] || String(num);
+};
+
+const assignPblFacultyIds = async (pblId, facultyId) => {
+  const existing = await prisma.pblFaculty.findUnique({
+    where: { pblId_facultyId: { pblId, facultyId } }
+  });
+
+  if (existing && existing.mentorIdFormatted) {
+    return existing;
+  }
+
+  const pbl = await prisma.pbl.findUnique({ where: { id: pblId } });
+  if (!pbl) return null;
+
+  const count = await prisma.pblFaculty.count({
+    where: {
+      pblId,
+      mentorIdFormatted: { not: null }
+    }
+  });
+
+  const seq = String(count + 1).padStart(3, '0');
+  const romanSem = toRoman(pbl.semester);
+  const mentorId = `${pbl.subjectShort}-${romanSem}-M-${seq}`;
+  const evaluatorId = `EV-${romanSem}-${pbl.subjectShort}-${seq}`;
+
+  return await prisma.pblFaculty.upsert({
+    where: { pblId_facultyId: { pblId, facultyId } },
+    update: {
+      mentorIdFormatted: existing?.mentorIdFormatted || mentorId,
+      evaluatorIdFormatted: existing?.evaluatorIdFormatted || evaluatorId
+    },
+    create: {
+      pblId,
+      facultyId,
+      mentorIdFormatted: mentorId,
+      evaluatorIdFormatted: evaluatorId
+    }
+  });
+};
+
+// @desc    Get all users (Students & Faculty)
+// @route   GET /api/users
+// @access  Private/Admin
+const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        studentProfile: true,
+        facultyProfile: {
+          include: {
+            pblFaculties: {
+              include: { pbl: true }
+            }
+          }
+        }
+      }
+    });
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Create a user manually
+// @route   POST /api/users
+// @access  Private/Admin
+const createUser = async (req, res, next) => {
+  try {
+    const { username, firstname, lastname, email, role1, course1, password } = req.body;
+
+    if (!username || !email || !role1) {
+      return res.status(400).json({ message: 'Username, email and role1 are required' });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const name = `${firstname || ''} ${lastname || ''}`.trim() || username;
+    const defaultPassword = password ? await bcrypt.hash(password, 10) : await bcrypt.hash('Pbl@1234', 10);
+    const roleEnum = role1.toLowerCase() === 'student' ? 'STUDENT' : 'FACULTY';
+
+    let userData = {
+      name,
+      email,
+      passwordHash: defaultPassword,
+      role: roleEnum,
+      requiresPasswordChange: true
+    };
+
+    if (roleEnum === 'STUDENT') {
+      userData.studentProfile = {
+        create: {
+          enrollmentNumber: username, // Using username as enrollmentNumber/moodleId
+          section: 'A', // Default or make dynamic later
+          semester: 1
+        }
+      };
+    } else {
+      userData.facultyProfile = {
+        create: {
+          department: 'General'
+        }
+      };
+    }
+
+    const newUser = await prisma.user.create({
+      data: userData,
+      include: { studentProfile: true, facultyProfile: true }
+    });
+
+    // Handle course mapping for Faculty
+    if (roleEnum === 'FACULTY' && course1) {
+      const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
+      if (pbl) {
+        await assignPblFacultyIds(pbl.id, newUser.facultyProfile.id);
+      }
+    }
+
+    res.status(201).json(newUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Bulk Upload Users (Moodle Format)
+// @route   POST /api/users/bulk
+// @access  Private/Admin
+const bulkUploadUsers = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Please upload a CSV or Excel file' });
+    }
+
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(sheet);
+
+    let addedCount = 0;
+    let updatedCount = 0;
+
+    for (const row of data) {
+      const username = row['username'];
+      const firstname = row['firstname'] || '';
+      const lastname = row['lastname'] || '';
+      const email = row['email'];
+      const course1 = row['course1'];
+      const role1 = row['role1'];
+      const rawPassword = row['password'] || 'Pbl@1234';
+
+      if (!username || !email || !role1) continue;
+
+      const name = `${firstname} ${lastname}`.trim() || username;
+      const roleEnum = role1.toLowerCase() === 'student' ? 'STUDENT' : 'FACULTY';
+      
+      const existingUser = await prisma.user.findFirst({
+        where: { OR: [{ email }, { studentProfile: { enrollmentNumber: String(username) } }] }
+      });
+
+      if (!existingUser) {
+        const passwordHash = await bcrypt.hash(rawPassword, 10);
+        let userData = {
+          name,
+          email,
+          passwordHash,
+          role: roleEnum,
+          requiresPasswordChange: true
+        };
+
+        if (roleEnum === 'STUDENT') {
+          userData.studentProfile = {
+            create: { enrollmentNumber: String(username), section: 'A', semester: 1 }
+          };
+        } else {
+          userData.facultyProfile = {
+            create: { department: 'General' }
+          };
+        }
+
+        const newUser = await prisma.user.create({
+          data: userData,
+          include: { facultyProfile: true }
+        });
+
+        if (roleEnum === 'FACULTY' && course1) {
+          const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
+          if (pbl) await assignPblFacultyIds(pbl.id, newUser.facultyProfile.id);
+        }
+
+        addedCount++;
+      } else {
+        // Just update name or link to course
+        const updatedUser = await prisma.user.update({
+          where: { id: existingUser.id },
+          data: { name },
+          include: { facultyProfile: true }
+        });
+        
+        if (roleEnum === 'FACULTY' && course1 && updatedUser.facultyProfile) {
+          const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
+          if (pbl) await assignPblFacultyIds(pbl.id, updatedUser.facultyProfile.id);
+        }
+        updatedCount++;
+      }
+    }
+
+    res.json({ message: `Success! Added ${addedCount} and updated ${updatedCount} users.` });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user
+// @route   PUT /api/users/:id
+// @access  Private/Admin
+const updateUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, email, section, department } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { id }, include: { studentProfile: true, facultyProfile: true } });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    await prisma.user.update({
+      where: { id },
+      data: { name, email }
+    });
+
+    if (user.role === 'STUDENT' && section) {
+      await prisma.student.update({
+        where: { userId: id },
+        data: { section }
+      });
+    } else if (user.role === 'FACULTY' && department) {
+      await prisma.faculty.update({
+        where: { userId: id },
+        data: { department }
+      });
+    }
+
+    res.json({ message: 'User updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete user
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+const deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await prisma.user.delete({ where: { id } });
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reset password
+// @route   POST /api/users/:id/reset-password
+// @access  Private/Admin
+const resetUserPassword = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+    
+    if (!newPassword) return res.status(400).json({ message: 'New password is required' });
+
+    const user = await prisma.user.findUnique({ 
+      where: { id },
+      include: { studentProfile: true, facultyProfile: true } 
+    });
+    
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    
+    await prisma.user.update({
+      where: { id },
+      data: { passwordHash, requiresPasswordChange: true }
+    });
+
+    // Try to sync with Moodle
+    let moodleUsername = user.email; // Default fallback
+    if (user.role === 'STUDENT' && user.studentProfile) {
+      moodleUsername = user.studentProfile.enrollmentNumber;
+    } else if (user.role === 'FACULTY') {
+       // Moodle ID mapping if we have it, else use email handle maybe?
+       // Usually in Moodle, username can be their email or a specific ID.
+       // Let's assume email prefix if we don't store it explicitly.
+       moodleUsername = user.email.split('@')[0]; 
+    }
+
+    await moodleService.syncMoodlePassword(moodleUsername, newPassword);
+
+    res.json({ message: 'Password reset successfully and synced with Moodle (if configured).' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getAllUsers,
+  createUser,
+  bulkUploadUsers,
+  updateUser,
+  deleteUser,
+  resetUserPassword
+};

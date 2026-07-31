@@ -1,4 +1,6 @@
 const axios = require('axios');
+const FormData = require('form-data');
+const fs = require('fs');
 const prisma = require('../config/db');
 
 const getMoodleConfig = async () => {
@@ -73,14 +75,36 @@ const syncMoodlePassword = async (moodleId, newPassword) => {
   }
 };
 
-const uploadFileToMoodle = async (moodleId, assignmentId, fileUrl) => {
+const uploadFileToMoodle = async (moodleId, assignmentId, localFilePath) => {
   try {
     const config = await getMoodleConfig();
+    
     if (!config.MOODLE_URL || !config.MOODLE_API_TOKEN || !assignmentId) {
-      console.log(`[MoodleSync MOCK] Mocked file upload for ${moodleId}`);
-      return true;
+      console.log(`[MoodleSync] Moodle not configured properly.`);
+      return false;
     }
 
+    // --- STEP 1: Upload File to Moodle Draft Area ---
+    const form = new FormData();
+    form.append('token', config.MOODLE_API_TOKEN);
+    form.append('filearea', 'draft'); // Uploading to draft area
+    form.append('itemid', 0); // 0 creates a new draft area
+    form.append('file', fs.createReadStream(localFilePath)); 
+
+    console.log(`[MoodleSync] Uploading file to draft area...`);
+    const uploadRes = await axios.post(`${config.MOODLE_URL}/webservice/upload.php`, form, {
+      headers: form.getHeaders(),
+    });
+
+    if (uploadRes.data && uploadRes.data.error) {
+      throw new Error(uploadRes.data.error);
+    }
+
+    // Moodle returns an array, we extract itemid
+    const draftItemId = uploadRes.data[0].itemid;
+    console.log(`[MoodleSync] File uploaded! Draft Item ID: ${draftItemId}`);
+
+    // --- STEP 2: Link that Draft File to the Assignment Submission ---
     // First get Moodle Internal User ID
     const userParams = new URLSearchParams({
       wstoken: config.MOODLE_API_TOKEN,
@@ -94,21 +118,19 @@ const uploadFileToMoodle = async (moodleId, assignmentId, fileUrl) => {
     const moodleUserId = userRes.data[0]?.id;
     if (!moodleUserId) throw new Error('Moodle User not found');
 
-    // Simulate file upload to draft area & save submission (In a real system, requires multipart/form-data upload to core_files_upload)
     const submitParams = new URLSearchParams({
       wstoken: config.MOODLE_API_TOKEN,
       wsfunction: 'mod_assign_save_submission',
       moodlewsrestformat: 'json',
       assignmentid: assignmentId,
-      'plugindata[onlinetext_editor][text]': `File uploaded via PBL Portal: ${fileUrl}`,
-      'plugindata[onlinetext_editor][format]': 1,
-      'plugindata[onlinetext_editor][itemid]': 0 // Usually draft item ID goes here
+      'plugindata[files_filemanager]': draftItemId 
     });
 
     await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, submitParams.toString());
 
-    console.log(`[MoodleSync] Submitted file for ${moodleId} to assignment ${assignmentId}`);
+    console.log(`[MoodleSync] Successfully submitted actual file for ${moodleId} to assignment ${assignmentId}`);
     return true;
+
   } catch (error) {
     console.error(`[MoodleSync] Failed submission sync:`, error.message);
     return false;
@@ -233,11 +255,70 @@ const authenticateMoodleUser = async (username, password) => {
   }
 };
 
+const enrollUserInMoodleCourse = async (moodleUsername, courseId, roleName) => {
+  try {
+    const config = await getMoodleConfig();
+    
+    if (!config.MOODLE_URL || !config.MOODLE_API_TOKEN) {
+      console.log(`[MoodleSync] Moodle not configured.`);
+      return false;
+    }
+
+    // Role IDs (Normally these are the default IDs in Moodle)
+    const roleIds = {
+      student: 5,
+      teacher: 3,
+      admin: 1
+    };
+    const roleId = roleIds[roleName.toLowerCase()] || 5;
+
+    // 1. Get internal user ID from moodleId
+    const userParams = new URLSearchParams({
+      wstoken: config.MOODLE_API_TOKEN,
+      wsfunction: 'core_user_get_users_by_field',
+      moodlewsrestformat: 'json',
+      field: 'username',
+      'values[0]': moodleUsername
+    });
+    
+    const userRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, userParams.toString());
+    const moodleUserId = userRes.data[0]?.id;
+    
+    if (!moodleUserId) {
+      throw new Error(`Moodle User not found for username: ${moodleUsername}`);
+    }
+
+    // 2. Enroll user in course
+    const enrolParams = new URLSearchParams({
+      wstoken: config.MOODLE_API_TOKEN,
+      wsfunction: 'enrol_manual_enrol_users',
+      moodlewsrestformat: 'json',
+      'enrolments[0][roleid]': roleId,
+      'enrolments[0][userid]': moodleUserId,
+      'enrolments[0][courseid]': courseId
+    });
+
+    const enrolRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, enrolParams.toString());
+
+    if (enrolRes.data && enrolRes.data.exception) {
+      throw new Error(enrolRes.data.message);
+    }
+
+    console.log(`[MoodleSync] Successfully enrolled ${moodleUsername} as ${roleName} in Course ID ${courseId}`);
+    return true;
+
+  } catch (error) {
+    console.error(`[MoodleSync] Failed to enroll user:`, error.message);
+    return false;
+  }
+};
+
 module.exports = {
   getMoodleConfig,
   syncMoodlePassword,
   uploadFileToMoodle,
   syncGradeToMoodle,
   getMoodleAssignmentTimeline,
-  authenticateMoodleUser
+  authenticateMoodleUser,
+  enrollUserInMoodleCourse
 };

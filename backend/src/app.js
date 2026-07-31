@@ -60,6 +60,7 @@ app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/faculty', require('./routes/facultyRoutes'));
 app.use('/api/student', require('./routes/studentRoutes'));

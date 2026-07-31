@@ -51,11 +51,8 @@ router.route('/faculty')
   .get(getAllFaculty)
   .post(addFaculty);
 
-router.post('/faculty/upload', uploadExcel.single('file'), uploadFaculty);
-router.post('/faculty/bulk', bulkUploadFaculty);
 router.route('/students')
   .get(getAllStudents);
-router.post('/students/bulk', bulkUploadStudents);
 router.post('/mentor-mapping', assignMentors);
 router.post('/evaluator-mapping', assignEvaluators);
 router.post('/random-map/mentors', randomMapMentors);
@@ -66,7 +63,6 @@ router.get('/re-evaluation/list/:phaseId', getReevaluations);
 router.get('/reports/:type', downloadReport);
 router.get('/reports/marks/:pblId', getMarksForPbl);
 router.put('/reports/marks/update', adminUpdateMarks);
-router.post('/users/:id/reset-password', resetUserPassword);
 router.get('/stats', getDashboardStats);
 router.get('/settings', getSettings);
 router.put('/settings', updateSettings);

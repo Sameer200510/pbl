@@ -6,7 +6,7 @@ import AdminPblManagement from './pages/AdminPblManagement';
 import AdminReports from './pages/AdminReports';
 import AdminTeamManagement from './pages/AdminTeamManagement';
 import AdminFacultyAllocation from './pages/AdminFacultyAllocation';
-import AdminStudentUpload from './pages/AdminStudentUpload';
+import AdminUserManagement from './pages/AdminUserManagement';
 import AdminPhaseConfig from './pages/AdminPhaseConfig';
 import AdminResult from './pages/AdminResult';
 import AdminReevaluation from './pages/AdminReevaluation';
@@ -43,7 +43,7 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="pbls" element={<AdminPblManagement />} />
           <Route path="teams" element={<AdminTeamManagement />} />
-          <Route path="students" element={<AdminStudentUpload />} />
+          <Route path="users" element={<AdminUserManagement />} />
           <Route path="faculty" element={<AdminFacultyAllocation />} />
           <Route path="phase-config" element={<AdminPhaseConfig />} />
           <Route path="reports" element={<AdminReports />} />

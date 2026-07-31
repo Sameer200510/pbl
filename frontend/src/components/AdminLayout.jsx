@@ -7,7 +7,7 @@ const AdminLayout = () => {
     { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
     { name: 'PBL Management', path: '/admin/pbls', icon: '📚' },
     { name: 'Team Management', path: '/admin/teams', icon: '👥' },
-    { name: 'Student Upload', path: '/admin/students', icon: '🎓' },
+    { name: 'Users (Moodle Sync)', path: '/admin/users', icon: '👥' },
     { name: 'Faculty & Allocation', path: '/admin/faculty', icon: '👨‍🏫' },
     { name: 'Phase Config', path: '/admin/phase-config', icon: '⚙️' },
     { name: 'Reports', path: '/admin/reports', icon: '📈' },
