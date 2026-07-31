@@ -380,7 +380,7 @@ const getActivePbls = async (req, res, next) => {
   try {
     const student = await prisma.student.findUnique({
       where: { userId: req.user.id },
-      select: { semester: true }
+      select: { semester: true, moodleId: true, enrollmentNumber: true }
     });
 
     const pbls = await prisma.pbl.findMany({
@@ -389,7 +389,30 @@ const getActivePbls = async (req, res, next) => {
       },
       include: { phases: true }
     });
-    res.json(pbls);
+
+    let filteredPbls = pbls;
+
+    if (student) {
+      const { getUserMoodleCourses } = require('../services/moodleService');
+      const moodleUsername = student.moodleId || student.enrollmentNumber;
+      const moodleCourses = await getUserMoodleCourses(moodleUsername);
+
+      if (moodleCourses !== null) {
+        // Moodle integration is active: filter based on Moodle course enrollments.
+        // If a PBL is not mapped to a Moodle course, fallback to semester matching.
+        filteredPbls = pbls.filter(pbl => {
+          if (pbl.moodleCourseId) {
+            return moodleCourses.includes(String(pbl.moodleCourseId));
+          }
+          return pbl.semester === student.semester;
+        });
+      } else {
+        // Moodle integration is inactive or failed: fallback to strict semester matching
+        filteredPbls = pbls.filter(pbl => pbl.semester === student.semester);
+      }
+    }
+
+    res.json(filteredPbls);
   } catch (error) {
     next(error);
   }

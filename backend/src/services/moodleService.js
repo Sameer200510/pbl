@@ -75,6 +75,48 @@ const syncMoodlePassword = async (moodleId, newPassword) => {
   }
 };
 
+const getUserMoodleCourses = async (moodleId) => {
+  try {
+    const config = await getMoodleConfig();
+    if (!config.MOODLE_URL || !config.MOODLE_API_TOKEN) {
+      return null;
+    }
+
+    const userParams = new URLSearchParams({
+      wstoken: config.MOODLE_API_TOKEN,
+      wsfunction: 'core_user_get_users_by_field',
+      moodlewsrestformat: 'json',
+      field: 'username',
+      'values[0]': moodleId
+    });
+
+    const userRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, userParams.toString());
+    const moodleUserId = userRes.data[0]?.id;
+    
+    if (!moodleUserId) {
+      return null;
+    }
+
+    const courseParams = new URLSearchParams({
+      wstoken: config.MOODLE_API_TOKEN,
+      wsfunction: 'core_enrol_get_users_courses',
+      moodlewsrestformat: 'json',
+      userid: moodleUserId
+    });
+
+    const courseRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, courseParams.toString());
+    
+    if (Array.isArray(courseRes.data)) {
+      // Return array of course IDs as strings for easy comparison
+      return courseRes.data.map(course => String(course.id));
+    }
+    return null;
+  } catch (error) {
+    console.error(`[MoodleSync] Failed to fetch courses for ${moodleId}:`, error.message);
+    return null;
+  }
+};
+
 const uploadFileToMoodle = async (moodleId, assignmentId, localFilePath) => {
   try {
     const config = await getMoodleConfig();
@@ -320,5 +362,6 @@ module.exports = {
   syncGradeToMoodle,
   getMoodleAssignmentTimeline,
   authenticateMoodleUser,
+  getUserMoodleCourses,
   enrollUserInMoodleCourse
 };
