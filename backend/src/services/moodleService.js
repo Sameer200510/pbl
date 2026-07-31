@@ -141,6 +141,30 @@ const countMoodleCourseUsers = async (courseId) => {
   }
 };
 
+const getMoodleCourseUsers = async (courseId) => {
+  try {
+    const config = await getMoodleConfig();
+    if (!config.MOODLE_URL || !config.MOODLE_API_TOKEN || !courseId) return null;
+
+    const params = new URLSearchParams({
+      wstoken: config.MOODLE_API_TOKEN,
+      wsfunction: 'core_enrol_get_enrolled_users',
+      moodlewsrestformat: 'json',
+      courseid: courseId
+    });
+
+    const res = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, params.toString());
+    if (Array.isArray(res.data)) {
+      // Return an array of usernames
+      return res.data.map(user => String(user.username));
+    }
+    return null;
+  } catch (err) {
+    console.error(`[MoodleSync] Failed to fetch users for course ${courseId}:`, err.message);
+    return null;
+  }
+};
+
 const uploadFileToMoodle = async (moodleId, assignmentId, localFilePath) => {
   try {
     const config = await getMoodleConfig();
@@ -388,5 +412,6 @@ module.exports = {
   authenticateMoodleUser,
   getUserMoodleCourses,
   countMoodleCourseUsers,
+  getMoodleCourseUsers,
   enrollUserInMoodleCourse
 };

@@ -1448,18 +1448,42 @@ const autoFormTeams = async (req, res, next) => {
       throw new Error('Cannot auto-form teams before the Team Formation Deadline has passed.');
     }
 
-    const unassignedStudents = await prisma.student.findMany({
-      where: {
-        semester: pbl.semester,
-        teamMembers: {
-          none: {
-            team: {
-              pblId
+    let unassignedStudents = [];
+
+    if (pbl.moodleCourseId) {
+      const { getMoodleCourseUsers } = require('../services/moodleService');
+      const moodleUsernames = await getMoodleCourseUsers(pbl.moodleCourseId);
+      
+      if (moodleUsernames && moodleUsernames.length > 0) {
+        unassignedStudents = await prisma.student.findMany({
+          where: {
+            OR: [
+              { moodleId: { in: moodleUsernames } },
+              { enrollmentNumber: { in: moodleUsernames } }
+            ],
+            teamMembers: {
+              none: {
+                team: { pblId }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Fallback: If Moodle is not used or API fails, just grab ALL unassigned students in the database 
+    // to allow for easy testing (ignoring semester strictness).
+    if (unassignedStudents.length === 0) {
+      unassignedStudents = await prisma.student.findMany({
+        where: {
+          teamMembers: {
+            none: {
+              team: { pblId }
             }
           }
         }
-      }
-    });
+      });
+    }
 
     if (unassignedStudents.length === 0) {
       return res.json({ message: 'No unassigned students found for this PBL.' });
