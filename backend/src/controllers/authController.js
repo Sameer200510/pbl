@@ -294,9 +294,13 @@ const login = async (req, res, next) => {
         usingMoodleSSO = true;
         
         // Auto-verify if they authenticated via Moodle successfully
-        if (!user.isVerified) {
-          await prisma.user.update({ where: { id: user.id }, data: { isVerified: true } });
+        if (!user.isVerified || user.requiresPasswordChange) {
+          await prisma.user.update({ 
+            where: { id: user.id }, 
+            data: { isVerified: true, requiresPasswordChange: false } 
+          });
           user.isVerified = true;
+          user.requiresPasswordChange = false;
         }
       } else if (moodleAuth.reason === 'invalid_credentials') {
         // Fallback to local DB if Moodle rejects credentials (to support users whose password synced failed due to Moodle API permission issues)
