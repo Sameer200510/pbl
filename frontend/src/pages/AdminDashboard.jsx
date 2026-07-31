@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AdminDashboard = () => {
-  const [selectedSemester, setSelectedSemester] = useState('1');
   const [selectedPbl, setSelectedPbl] = useState('');
   const [pblList, setPblList] = useState([]);
   const [statsData, setStatsData] = useState({
@@ -30,15 +29,11 @@ const AdminDashboard = () => {
   }, []);
 
   useEffect(() => {
-    setSelectedPbl('');
-  }, [selectedSemester]);
-
-  useEffect(() => {
     const fetchStats = async () => {
       try {
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        let url = `/api/admin/stats?semester=${selectedSemester}`;
-        if (selectedPbl) url += `&pblId=${selectedPbl}`;
+        let url = `/api/admin/stats`;
+        if (selectedPbl) url += `?pblId=${selectedPbl}`;
         
         const res = await axios.get(url, {
           headers: { Authorization: `Bearer ${userInfo.token}` }
@@ -49,7 +44,7 @@ const AdminDashboard = () => {
       }
     };
     fetchStats();
-  }, [selectedSemester, selectedPbl]);
+  }, [selectedPbl]);
 
   const stats = [
     { title: 'Total Students', value: statsData.students, icon: '🎓', color: 'bg-blue-100 text-blue-600' },
@@ -58,36 +53,21 @@ const AdminDashboard = () => {
     { title: 'Total Teams Formed', value: statsData.teams, icon: '🤝', color: 'bg-indigo-100 text-indigo-600' },
   ];
 
-  const filteredPbls = pblList.filter(p => String(p.semester) === String(selectedSemester));
-
   return (
     <div className="space-y-6 fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard Overview</h2>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Showing stats for <span className="font-bold text-blue-600 dark:text-blue-400">Semester {selectedSemester}</span>
-            {selectedPbl && (() => {
+            Showing stats for 
+            {selectedPbl ? (() => {
               const p = pblList.find(x => x.id === selectedPbl);
-              return p ? ` > ${p.subjectShort}` : '';
-            })()}
+              return p ? <span className="font-bold text-blue-600 dark:text-blue-400"> {p.subjectShort}</span> : ' All Subjects';
+            })() : <span className="font-bold text-blue-600 dark:text-blue-400"> All Subjects</span>}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 whitespace-nowrap">Select Semester:</label>
-            <select
-              value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-                <option key={sem} value={sem}>Semester {sem}</option>
-              ))}
-            </select>
-          </div>
-          
-          {filteredPbls.length > 0 && (
+          {pblList.length > 0 && (
             <div className="flex items-center gap-2">
               <label className="text-sm font-bold text-gray-700 dark:text-gray-300 whitespace-nowrap">PBL Filter:</label>
               <select
@@ -96,7 +76,7 @@ const AdminDashboard = () => {
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer max-w-[200px]"
               >
                 <option value="">All Subjects</option>
-                {filteredPbls.map(p => (
+                {pblList.map(p => (
                   <option key={p.id} value={p.id}>{p.subjectShort}</option>
                 ))}
               </select>

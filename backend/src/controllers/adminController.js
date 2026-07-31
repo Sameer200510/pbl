@@ -657,22 +657,16 @@ const resetUserPassword = async (req, res, next) => {
 // @access  Private/Admin
 const getDashboardStats = async (req, res, next) => {
   try {
-    const semester = parseInt(req.query.semester) || 1;
     const pblId = req.query.pblId;
 
-    const studentCount = await prisma.student.count({
-      where: { semester }
-    });
+    const studentCount = await prisma.student.count();
 
-    const teamCount = await prisma.team.count({
-      where: pblId ? { pblId } : { pbl: { semester } }
-    });
+    const teamCount = await prisma.team.count(
+      pblId ? { where: { pblId } } : undefined
+    );
 
     const studentsWithTeamCount = await prisma.student.count({
-      where: { 
-        semester,
-        teamMembers: { some: pblId ? { team: { pblId } } : {} } 
-      }
+      where: pblId ? { teamMembers: { some: { team: { pblId } } } } : { teamMembers: { some: {} } }
     });
 
     const studentsWithoutTeam = studentCount - studentsWithTeamCount;
@@ -680,7 +674,7 @@ const getDashboardStats = async (req, res, next) => {
     const facultyCount = await prisma.faculty.count();
     
     const activePblsCount = await prisma.pbl.count({
-      where: { isArchived: false, semester }
+      where: { isArchived: false }
     });
 
     res.json({
