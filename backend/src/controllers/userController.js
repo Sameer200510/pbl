@@ -203,12 +203,20 @@ const bulkUploadUsers = async (req, res, next) => {
 
         addedCount++;
       } else {
-        // Just update name or link to course
         const updatedUser = await prisma.user.update({
           where: { id: existingUser.id },
           data: { name },
-          include: { facultyProfile: true }
+          include: { facultyProfile: true, studentProfile: true }
         });
+
+        if (roleEnum === 'STUDENT' && updatedUser.studentProfile) {
+          if (!updatedUser.studentProfile.moodleId) {
+            await prisma.student.update({
+              where: { id: updatedUser.studentProfile.id },
+              data: { moodleId: String(username) }
+            });
+          }
+        }
         
         if (roleEnum === 'FACULTY' && updatedUser.facultyProfile) {
           if (!updatedUser.facultyProfile.moodleId) {
