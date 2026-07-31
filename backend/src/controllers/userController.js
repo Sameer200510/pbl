@@ -110,7 +110,8 @@ const createUser = async (req, res, next) => {
     } else {
       userData.facultyProfile = {
         create: {
-          department: 'General'
+          department: 'General',
+          moodleId: String(username)
         }
       };
     }
@@ -185,7 +186,7 @@ const bulkUploadUsers = async (req, res, next) => {
           };
         } else {
           userData.facultyProfile = {
-            create: { department: 'General' }
+            create: { department: 'General', moodleId: String(username) }
           };
         }
 
@@ -208,9 +209,17 @@ const bulkUploadUsers = async (req, res, next) => {
           include: { facultyProfile: true }
         });
         
-        if (roleEnum === 'FACULTY' && course1 && updatedUser.facultyProfile) {
-          const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
-          if (pbl) await assignPblFacultyIds(pbl.id, updatedUser.facultyProfile.id);
+        if (roleEnum === 'FACULTY' && updatedUser.facultyProfile) {
+          if (!updatedUser.facultyProfile.moodleId) {
+            await prisma.faculty.update({
+              where: { id: updatedUser.facultyProfile.id },
+              data: { moodleId: String(username) }
+            });
+          }
+          if (course1) {
+            const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
+            if (pbl) await assignPblFacultyIds(pbl.id, updatedUser.facultyProfile.id);
+          }
         }
         updatedCount++;
       }
