@@ -102,7 +102,8 @@ const createUser = async (req, res, next) => {
     if (roleEnum === 'STUDENT') {
       userData.studentProfile = {
         create: {
-          enrollmentNumber: username, // Using username as enrollmentNumber/moodleId
+          enrollmentNumber: username,
+          moodleId: username,
           section: 'A', // Default or make dynamic later
           semester: 1
         }
@@ -182,7 +183,7 @@ const bulkUploadUsers = async (req, res, next) => {
 
         if (roleEnum === 'STUDENT') {
           userData.studentProfile = {
-            create: { enrollmentNumber: String(username), section: 'A', semester: 1 }
+            create: { enrollmentNumber: String(username), moodleId: String(username), section: 'A', semester: 1 }
           };
         } else {
           userData.facultyProfile = {
