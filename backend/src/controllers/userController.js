@@ -162,6 +162,8 @@ const bulkUploadUsers = async (req, res, next) => {
       const role1 = row['role1'];
       const rawPassword = row['password'] || 'Pbl@1234';
       const semester = parseInt(row['semester']) || 1;
+      const section = row['section'] ? String(row['section']).toUpperCase() : 'A';
+      const rollno = row['rollno'] ? String(row['rollno']) : String(username);
 
       if (!username || !email || !role1) continue;
 
@@ -169,7 +171,7 @@ const bulkUploadUsers = async (req, res, next) => {
       const roleEnum = role1.toLowerCase() === 'student' ? 'STUDENT' : 'FACULTY';
       
       const existingUser = await prisma.user.findFirst({
-        where: { OR: [{ email }, { studentProfile: { enrollmentNumber: String(username) } }] }
+        where: { OR: [{ email }, { studentProfile: { enrollmentNumber: rollno } }, { studentProfile: { enrollmentNumber: String(username) } }] }
       });
 
       if (!existingUser) {
@@ -184,7 +186,7 @@ const bulkUploadUsers = async (req, res, next) => {
 
         if (roleEnum === 'STUDENT') {
           userData.studentProfile = {
-            create: { enrollmentNumber: String(username), moodleId: String(username), section: 'A', semester }
+            create: { enrollmentNumber: rollno, moodleId: String(username), section, semester }
           };
         } else {
           userData.facultyProfile = {
@@ -211,12 +213,13 @@ const bulkUploadUsers = async (req, res, next) => {
         });
 
         if (roleEnum === 'STUDENT' && updatedUser.studentProfile) {
-          // Update moodleId and semester
+          // Update moodleId, semester, and section
           await prisma.student.update({
             where: { id: updatedUser.studentProfile.id },
             data: { 
               moodleId: updatedUser.studentProfile.moodleId || String(username),
-              semester: semester
+              semester: semester,
+              section: section
             }
           });
         }
