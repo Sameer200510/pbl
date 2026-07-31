@@ -116,6 +116,7 @@ const updatePbl = async (req, res, next) => {
     if (updateData.semester) updateData.semester = parseInt(updateData.semester);
     if (updateData.teamFormationStart) updateData.teamFormationStart = new Date(updateData.teamFormationStart);
     if (updateData.teamFormationEnd) updateData.teamFormationEnd = new Date(updateData.teamFormationEnd);
+    if (updateData.moodleCourseId === '') updateData.moodleCourseId = null;
 
     const updatedPbl = await prisma.pbl.update({
       where: { id },

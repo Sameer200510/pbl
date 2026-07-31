@@ -14,6 +14,8 @@ const AdminPblManagement = () => {
     session: '',
     moodleCourseId: ''
   });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   // Timeline Modal State
   const [showTimelineModal, setShowTimelineModal] = useState(false);
@@ -38,21 +40,43 @@ const AdminPblManagement = () => {
     fetchPbls();
   }, []);
 
-  const handleCreate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      await axios.post('/api/admin/pbl', formData, {
-        headers: { Authorization: `Bearer ${userInfo.token}` }
-      });
+      if (isEditing) {
+        await axios.put(`/api/admin/pbl/${editId}`, formData, {
+          headers: { Authorization: `Bearer ${userInfo.token}` }
+        });
+      } else {
+        await axios.post('/api/admin/pbl', formData, {
+          headers: { Authorization: `Bearer ${userInfo.token}` }
+        });
+      }
       setShowModal(false);
+      setIsEditing(false);
+      setEditId(null);
       setFormData({ subject: '', subjectShort: '', semester: 3, session: '', moodleCourseId: '' });
       fetchPbls();
     } catch (err) {
-      console.error('Failed to create PBL', err);
-      alert(err.response?.data?.message || 'Failed to create PBL');
+      console.error('Failed to save PBL', err);
+      alert(err.response?.data?.message || 'Failed to save PBL');
     }
   };
+
+  const openEditModal = (pbl) => {
+    setIsEditing(true);
+    setEditId(pbl.id);
+    setFormData({
+      subject: pbl.subject,
+      subjectShort: pbl.subjectShort,
+      semester: pbl.semester,
+      session: pbl.session,
+      moodleCourseId: pbl.moodleCourseId || ''
+    });
+    setShowModal(true);
+  };
+
 
   const handleDeletePbl = async (id, subject) => {
     if (!window.confirm(`Are you SURE you want to completely delete the PBL "${subject}"?\n\nWARNING: This will permanently erase all associated phases, teams, submissions, and grades!`)) {
@@ -100,15 +124,20 @@ const AdminPblManagement = () => {
 
   return (
     <div className="space-y-6 fade-in">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">PBL Management</h2>
-        <button 
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-medium flex items-center gap-2"
-        >
-          <span>➕</span> Create New PBL
-        </button>
-      </div>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">PBL Subjects</h2>
+          <button 
+            onClick={() => {
+              setIsEditing(false);
+              setEditId(null);
+              setFormData({ subject: '', subjectShort: '', semester: 3, session: '', moodleCourseId: '' });
+              setShowModal(true);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow flex items-center gap-2"
+          >
+            <span>+ Add New Subject</span>
+          </button>
+        </div>
 
       <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
@@ -165,6 +194,13 @@ const AdminPblManagement = () => {
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button 
+                              onClick={() => openEditModal(pbl)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" 
+                              title="Edit PBL"
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button 
                               onClick={() => openTimelineModal(pbl)}
                               className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors" 
                               title="Set Timeline"
@@ -190,12 +226,14 @@ const AdminPblManagement = () => {
         </div>
       </div>
 
-      {/* Create PBL Modal */}
+      {/* Create / Edit PBL Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Create New PBL</h3>
-            <form onSubmit={handleCreate} className="space-y-4">
+            <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+              {isEditing ? 'Edit PBL Subject' : 'Create New PBL'}
+            </h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Subject Name</label>
                 <input 
@@ -237,8 +275,14 @@ const AdminPblManagement = () => {
                 <p className="text-xs text-gray-500 mt-1">If provided, students will be automatically enrolled when they form a team.</p>
               </div>
               <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create</button>
+                <button type="button" onClick={() => {
+                  setShowModal(false);
+                  setIsEditing(false);
+                  setEditId(null);
+                }} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  {isEditing ? 'Save Changes' : 'Create'}
+                </button>
               </div>
             </form>
           </div>
