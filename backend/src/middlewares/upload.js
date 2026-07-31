@@ -10,9 +10,9 @@ const uploadExcel = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB limit
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const allowedMimes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-    if ((ext !== '.xlsx' && ext !== '.xls') || !allowedMimes.includes(file.mimetype)) {
-      return cb(new Error('Only valid Excel files are allowed'), false);
+    const allowedMimes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv', 'application/csv', 'application/vnd.ms-excel.csv.csv'];
+    if ((ext !== '.xlsx' && ext !== '.xls' && ext !== '.csv') || !allowedMimes.includes(file.mimetype)) {
+      return cb(new Error('Only valid Excel or CSV files are allowed'), false);
     }
     cb(null, true);
   }
