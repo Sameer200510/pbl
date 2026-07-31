@@ -385,8 +385,7 @@ const getActivePbls = async (req, res, next) => {
 
     const pbls = await prisma.pbl.findMany({
       where: { 
-        isArchived: false,
-        ...(student ? { semester: student.semester } : {})
+        isArchived: false
       },
       include: { phases: true }
     });
