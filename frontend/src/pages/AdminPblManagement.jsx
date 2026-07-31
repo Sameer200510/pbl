@@ -11,7 +11,8 @@ const AdminPblManagement = () => {
     subject: '',
     subjectShort: '',
     semester: 3,
-    session: ''
+    session: '',
+    moodleCourseId: ''
   });
 
   // Timeline Modal State
@@ -45,7 +46,7 @@ const AdminPblManagement = () => {
         headers: { Authorization: `Bearer ${userInfo.token}` }
       });
       setShowModal(false);
-      setFormData({ subject: '', subjectShort: '', semester: 3, session: '' });
+      setFormData({ subject: '', subjectShort: '', semester: 3, session: '', moodleCourseId: '' });
       fetchPbls();
     } catch (err) {
       console.error('Failed to create PBL', err);
@@ -225,6 +226,15 @@ const AdminPblManagement = () => {
                   className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="e.g. 2024-2025"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Moodle Course ID (Optional)</label>
+                <input 
+                  type="text" value={formData.moodleCourseId} onChange={e => setFormData({...formData, moodleCourseId: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="e.g. 123"
+                />
+                <p className="text-xs text-gray-500 mt-1">If provided, students will be automatically enrolled when they form a team.</p>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>

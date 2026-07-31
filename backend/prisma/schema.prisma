@@ -76,6 +76,7 @@ model Pbl {
   isArchived          Boolean  @default(false)
   createdBy           String?  // Admin User ID
   registrationSchema  Json?    // Dynamic form fields defined by Admin
+  moodleCourseId      String?  // Moodle Course ID for auto enrollment
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 

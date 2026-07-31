@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const bcrypt = require('bcrypt');
 const xlsx = require('xlsx');
+const { enrollUserInMoodleCourse } = require('../services/moodleService');
 
 const toRoman = (num) => {
   const roman = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII' };
@@ -56,7 +57,8 @@ const createPbl = async (req, res, next) => {
       description,
       instructions,
       teamFormationStart,
-      teamFormationEnd
+      teamFormationEnd,
+      moodleCourseId
     } = req.body;
 
     const pbl = await prisma.pbl.create({
@@ -69,6 +71,7 @@ const createPbl = async (req, res, next) => {
         instructions,
         teamFormationStart: teamFormationStart ? new Date(teamFormationStart) : null,
         teamFormationEnd: teamFormationEnd ? new Date(teamFormationEnd) : null,
+        moodleCourseId: moodleCourseId || null,
         createdBy: req.user.id,
         phases: {
           create: [
@@ -512,6 +515,27 @@ const assignMentors = async (req, res, next) => {
       }
     });
 
+    // Auto-enroll mentors in Moodle Course if configured
+    if (pbl.moodleCourseId) {
+      setTimeout(async () => {
+        try {
+          // Extract unique faculty IDs
+          const facultyIds = [...new Set(assignments.map(a => a.facultyId))];
+          const faculties = await prisma.faculty.findMany({
+            where: { id: { in: facultyIds } },
+            include: { user: true }
+          });
+          
+          for (const faculty of faculties) {
+            const moodleUsername = faculty.moodleId || faculty.user.email;
+            await enrollUserInMoodleCourse(moodleUsername, pbl.moodleCourseId, 'teacher');
+          }
+        } catch (err) {
+          console.error(`[MoodleSync] Error auto-enrolling mentors in Moodle:`, err);
+        }
+      }, 0);
+    }
+
     res.json({ message: `Successfully assigned ${assignedCount} mentors.` });
   } catch (error) {
     next(error);
@@ -758,6 +782,25 @@ const randomMapMentors = async (req, res, next) => {
         mentorAssignedCount++;
       }
     });
+
+    // Auto-enroll all available faculty in Moodle Course if configured
+    if (pbl.moodleCourseId) {
+      setTimeout(async () => {
+        try {
+          const facultiesToEnroll = await prisma.faculty.findMany({
+            where: { pblFaculties: { some: { pblId } } },
+            include: { user: true }
+          });
+          
+          for (const faculty of facultiesToEnroll) {
+            const moodleUsername = faculty.moodleId || faculty.user.email;
+            await enrollUserInMoodleCourse(moodleUsername, pbl.moodleCourseId, 'teacher');
+          }
+        } catch (err) {
+          console.error(`[MoodleSync] Error auto-enrolling random mentors in Moodle:`, err);
+        }
+      }, 0);
+    }
 
     res.json({ message: `Successfully mapped ${mentorAssignedCount} mentors (equally balanced).` });
   } catch (error) {

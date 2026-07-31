@@ -1,5 +1,7 @@
 const prisma = require('../config/db');
 const bcrypt = require('bcrypt');
+const { enrollUserInMoodleCourse } = require('../services/moodleService');
+
 // @desc    Create a Team
 // @route   POST /api/student/team
 // @access  Private/Student
@@ -181,6 +183,20 @@ const createTeam = async (req, res, next) => {
       });
       return team;
     });
+
+    // Auto-enroll in Moodle Course if configured
+    if (pbl.moodleCourseId) {
+      setTimeout(async () => {
+        try {
+          for (const sData of studentsData) {
+            const moodleUsername = sData.moodleId || sData.enrollmentNumber;
+            await enrollUserInMoodleCourse(moodleUsername, pbl.moodleCourseId, 'student');
+          }
+        } catch (err) {
+          console.error(`[MoodleSync] Error auto-enrolling team ${newTeam.teamIdFormatted} in Moodle:`, err);
+        }
+      }, 0);
+    }
 
     res.status(201).json({ message: 'Team created successfully', team: newTeam });
   } catch (error) {
