@@ -657,9 +657,28 @@ const resetUserPassword = async (req, res, next) => {
 // @access  Private/Admin
 const getDashboardStats = async (req, res, next) => {
   try {
-    const pblId = req.query.pblId;
+    let studentCount = 0;
 
-    const studentCount = await prisma.student.count();
+    if (pblId) {
+      const pbl = await prisma.pbl.findUnique({ where: { id: pblId } });
+      if (pbl) {
+        if (pbl.moodleCourseId) {
+          const { countMoodleCourseUsers } = require('../services/moodleService');
+          const count = await countMoodleCourseUsers(pbl.moodleCourseId);
+          if (count !== null) {
+            studentCount = count;
+          } else {
+            studentCount = await prisma.student.count({ where: { semester: pbl.semester } });
+          }
+        } else {
+          studentCount = await prisma.student.count({ where: { semester: pbl.semester } });
+        }
+      } else {
+        studentCount = await prisma.student.count();
+      }
+    } else {
+      studentCount = await prisma.student.count();
+    }
 
     const teamCount = await prisma.team.count(
       pblId ? { where: { pblId } } : undefined
