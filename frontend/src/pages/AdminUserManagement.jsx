@@ -20,6 +20,7 @@ const AdminUserManagement = () => {
   });
 
   const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getAuthHeader = () => ({
     headers: { Authorization: `Bearer ${JSON.parse(localStorage.getItem('userInfo'))?.token}` }
@@ -134,9 +135,15 @@ const AdminUserManagement = () => {
     }
   };
 
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.role.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedUserIds(users.map(u => u.id));
+      setSelectedUserIds(filteredUsers.map(u => u.id));
     } else {
       setSelectedUserIds([]);
     }
@@ -196,6 +203,22 @@ const AdminUserManagement = () => {
         </form>
       </div>
 
+      {/* Users Table Controls */}
+      <div className="mb-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="relative w-full sm:w-96">
+          <input
+            type="text"
+            placeholder="Search by name, email, or role..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          />
+          <svg className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+
       {/* Users Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -204,7 +227,7 @@ const AdminUserManagement = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 <input 
                   type="checkbox" 
-                  checked={users.length > 0 && selectedUserIds.length === users.length}
+                  checked={filteredUsers.length > 0 && selectedUserIds.length === filteredUsers.length}
                   onChange={handleSelectAll}
                   className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                 />
@@ -218,10 +241,10 @@ const AdminUserManagement = () => {
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {loading ? (
               <tr><td colSpan="5" className="px-6 py-4 text-center dark:text-gray-300">Loading...</td></tr>
-            ) : users.length === 0 ? (
+            ) : filteredUsers.length === 0 ? (
               <tr><td colSpan="5" className="px-6 py-4 text-center dark:text-gray-300">No users found</td></tr>
             ) : (
-              users.map(user => (
+              filteredUsers.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <input 
