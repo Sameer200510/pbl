@@ -19,10 +19,14 @@ const AdminUserManagement = () => {
     username: '', firstname: '', lastname: '', email: '', role1: 'student', course1: '', password: ''
   });
 
+  const getAuthHeader = () => ({
+    headers: { Authorization: `Bearer ${JSON.parse(localStorage.getItem('userInfo'))?.token}` }
+  });
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, { withCredentials: true });
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, getAuthHeader());
       setUsers(res.data);
     } catch (err) {
       console.error(err);
@@ -50,7 +54,7 @@ const AdminUserManagement = () => {
 
     try {
       setUploadLoading(true);
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/bulk`, data, { withCredentials: true });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/bulk`, data, getAuthHeader());
       setUploadSuccess(res.data.message);
       setUploadFile(null);
       document.getElementById('fileUploadInput').value = '';
@@ -65,7 +69,7 @@ const AdminUserManagement = () => {
   const handleManualAdd = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/users`, formData, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/users`, formData, getAuthHeader());
       setShowAddModal(false);
       setFormData({ username: '', firstname: '', lastname: '', email: '', role1: 'student', course1: '', password: '' });
       fetchUsers();
@@ -79,7 +83,7 @@ const AdminUserManagement = () => {
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${selectedUser.id}`, 
         { name: formData.firstname, email: formData.email }, 
-        { withCredentials: true }
+        getAuthHeader()
       );
       setShowEditModal(false);
       fetchUsers();
@@ -91,7 +95,7 @@ const AdminUserManagement = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/users/${id}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/users/${id}`, getAuthHeader());
       fetchUsers();
     } catch (err) {
       alert(err.response?.data?.message || err.message);
@@ -103,7 +107,7 @@ const AdminUserManagement = () => {
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/${selectedUser.id}/reset-password`, 
         { newPassword: formData.password }, 
-        { withCredentials: true }
+        getAuthHeader()
       );
       alert(res.data.message);
       setShowResetModal(false);
