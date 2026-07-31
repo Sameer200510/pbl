@@ -391,28 +391,39 @@ const getActivePbls = async (req, res, next) => {
     });
 
     let filteredPbls = pbls;
+    let moodleDebug = 'Not checked';
 
     if (student) {
       const { getUserMoodleCourses } = require('../services/moodleService');
       const moodleUsername = student.moodleId || student.enrollmentNumber;
-      const moodleCourses = await getUserMoodleCourses(moodleUsername);
-
-      if (moodleCourses !== null) {
-        // Moodle integration is active: filter based on Moodle course enrollments.
-        // If a PBL is not mapped to a Moodle course, fallback to semester matching.
-        filteredPbls = pbls.filter(pbl => {
-          if (pbl.moodleCourseId) {
-            return moodleCourses.includes(String(pbl.moodleCourseId));
-          }
-          return pbl.semester === student.semester;
-        });
-      } else {
-        // Moodle integration is inactive or failed: fallback to strict semester matching
-        filteredPbls = pbls.filter(pbl => pbl.semester === student.semester);
+      
+      try {
+        const moodleCourses = await getUserMoodleCourses(moodleUsername);
+        
+        if (moodleCourses !== null) {
+          moodleDebug = `Moodle active. Courses found: ${moodleCourses.join(', ')}`;
+          filteredPbls = pbls.filter(pbl => {
+            if (pbl.moodleCourseId) {
+              return moodleCourses.includes(String(pbl.moodleCourseId));
+            }
+            return true; // Show unmapped PBLs to everyone
+          });
+        } else {
+          moodleDebug = 'Moodle API returned null (User not found or Token error). Showing all unmapped PBLs.';
+          filteredPbls = pbls.filter(pbl => !pbl.moodleCourseId); // Hide mapped ones if Moodle fails? No, show all!
+          // Actually, if Moodle fails, just show ALL PBLs so they can at least use the platform.
+          filteredPbls = pbls;
+        }
+      } catch (err) {
+        moodleDebug = `Error: ${err.message}`;
+        filteredPbls = pbls; // Fallback: show everything if Moodle crashes
       }
     }
 
-    res.json(filteredPbls);
+    res.json({
+      pbls: filteredPbls,
+      moodleDebug
+    });
   } catch (error) {
     next(error);
   }

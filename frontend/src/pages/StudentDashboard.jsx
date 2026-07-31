@@ -34,7 +34,15 @@ const StudentDashboard = () => {
         axios.get('/api/student/invitations', { headers: { Authorization: `Bearer ${userInfo.token}` } })
       ]);
       setTeams(teamRes.data || []);
-      setPbls(pblsRes.data || []);
+      
+      // The API now returns { pbls, moodleDebug }, handle it properly
+      const pblData = Array.isArray(pblsRes.data) ? pblsRes.data : pblsRes.data.pbls || [];
+      setPbls(pblData);
+      
+      if (pblsRes.data && pblsRes.data.moodleDebug) {
+        console.log("Moodle Debug Info:", pblsRes.data.moodleDebug);
+      }
+
       setInvitations(invRes.data || []);
     } catch (err) {
       console.error('Failed to fetch data', err);
