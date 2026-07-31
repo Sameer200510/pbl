@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, admin } = require('../middlewares/auth');
+const { protect, authorize } = require('../middlewares/auth');
 const { uploadExcel } = require('../middlewares/upload');
 const {
   getAllUsers,
@@ -12,7 +12,7 @@ const {
 } = require('../controllers/userController');
 
 // All user management routes require admin access
-router.use(protect, admin);
+router.use(protect, authorize('ADMIN', 'SUPER_ADMIN'));
 
 router.get('/', getAllUsers);
 router.post('/', createUser);
