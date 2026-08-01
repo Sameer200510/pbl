@@ -1140,7 +1140,8 @@ const getMarksForPbl = async (req, res, next) => {
         mentor: { include: { user: true } },
         phaseEvaluators: { include: { evaluator: { include: { user: true } }, phase: true } },
         members: { include: { student: { include: { user: true } } } },
-        submissions: { include: { mentorGrades: { orderBy: { gradedAt: 'desc' } }, phase: true } }
+        submissions: { include: { mentorGrades: { orderBy: { gradedAt: 'desc' } }, phase: true } },
+        examineeAssignments: { include: { evaluations: true, phase: true } }
       }
     });
 
@@ -1179,7 +1180,8 @@ const getMarksForPbl = async (req, res, next) => {
             mentorRemarks: null,
             evaluatorTotalMarks: null,
             evaluatorMarksData: {},
-            evaluatorRemarks: null
+            evaluatorRemarks: null,
+            microMentorScore: null
           };
         });
 
@@ -1191,6 +1193,18 @@ const getMarksForPbl = async (req, res, next) => {
              studentData.phases[pNum].mentorRemarks = latestGrade.remarks;
           }
         });
+
+        // Add Micro Mentor Data
+        if (team.examineeAssignments) {
+          team.examineeAssignments.forEach(assignment => {
+            const pNum = assignment.phase.phaseNumber;
+            const evals = assignment.evaluations;
+            if (evals && evals.length > 0) {
+              const avg = (evals.reduce((sum, ev) => sum + ev.totalMarks, 0) / evals.length).toFixed(2);
+              studentData.phases[pNum].microMentorScore = avg;
+            }
+          });
+        }
 
         const studentEvals = evaluations.filter(e => e.studentId === student.id);
         studentEvals.forEach(ev => {
@@ -1928,6 +1942,97 @@ const adminUpdateMarks = async (req, res, next) => {
   }
 };
 
+// @desc    Assign Micro Mentors (Peer Evaluation) Randomly
+// @route   POST /api/admin/micro-mentor/assign
+// @access  Private/Admin
+const assignMicroMentors = async (req, res, next) => {
+  try {
+    const { pblId, phaseId } = req.body;
+    
+    // Check Phase
+    const phase = await prisma.phase.findUnique({ where: { id: phaseId } });
+    if (!phase) throw new Error('Phase not found');
+
+    // Find all teams that have a submission for this phase
+    const submissions = await prisma.submission.findMany({
+      where: { 
+        phaseId,
+        team: { pblId }
+      },
+      include: { team: true }
+    });
+
+    if (submissions.length < 2) {
+      throw new Error('Need at least 2 teams with submissions in this phase to assign peer reviews.');
+    }
+
+    // Delete existing micro mentor assignments for this phase to re-assign
+    await prisma.microMentorAssignment.deleteMany({
+      where: { phaseId }
+    });
+
+    // Shuffle the teams array
+    let teams = submissions.map(sub => sub.team);
+    for (let i = teams.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [teams[i], teams[j]] = [teams[j], teams[i]];
+    }
+
+    // Shift by 1 to assign Reviewer -> Examinee
+    // A -> B, B -> C, C -> A
+    let assignments = [];
+    for (let i = 0; i < teams.length; i++) {
+      const reviewerTeam = teams[i];
+      const examineeTeam = teams[(i + 1) % teams.length]; // Next team in shuffled list
+
+      assignments.push({
+        phaseId,
+        reviewerTeamId: reviewerTeam.id,
+        examineeTeamId: examineeTeam.id
+      });
+    }
+
+    await prisma.microMentorAssignment.createMany({
+      data: assignments
+    });
+
+    res.json({ message: `Successfully assigned ${assignments.length} teams for peer evaluation.` });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get Micro Mentor Assignments for a PBL
+// @route   GET /api/admin/micro-mentor/:pblId
+// @access  Private/Admin
+const getMicroMentorAssignments = async (req, res, next) => {
+  try {
+    const { pblId } = req.params;
+    const { phaseId } = req.query; // optional filter
+
+    let whereClause = {
+      reviewerTeam: { pblId }
+    };
+    if (phaseId) {
+      whereClause.phaseId = phaseId;
+    }
+
+    const assignments = await prisma.microMentorAssignment.findMany({
+      where: whereClause,
+      include: {
+        phase: true,
+        reviewerTeam: { include: { leader: { include: { user: true } } } },
+        examineeTeam: { include: { leader: { include: { user: true } } } },
+        evaluations: true
+      }
+    });
+
+    res.json(assignments);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createTeamAdmin,
   createPbl,
@@ -1967,5 +2072,7 @@ module.exports = {
   adminUpdateMarks,
   getAllStudents,
   bulkDeleteTeams,
-  bulkUploadTeams
+  bulkUploadTeams,
+  assignMicroMentors,
+  getMicroMentorAssignments
 };

@@ -13,6 +13,7 @@ const AdminLayout = () => {
     { name: 'Reports', path: '/admin/reports', icon: '📈' },
     { name: 'Results', path: '/admin/results', icon: '📝' },
     { name: 'Re-evaluation', path: '/admin/reevaluation', icon: '🔄' },
+    { name: 'Micro Mentor', path: '/admin/micro-mentor', icon: '👁️' },
   ];
 
   const userInfoString = localStorage.getItem('userInfo');

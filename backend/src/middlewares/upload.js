@@ -40,12 +40,10 @@ const docStorage = multer.diskStorage({
   }
 });
 
+const { getS3Storage } = require('../services/s3Service');
+
 const uploadDocument = async (req, res, next) => {
   try {
-    const settings = await prisma.systemSettings.findUnique({
-      where: { id: 'singleton' }
-    });
-
     const fileFilter = (req, file, cb) => {
       const ext = path.extname(file.originalname).toLowerCase();
       const allowedMimes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -56,27 +54,9 @@ const uploadDocument = async (req, res, next) => {
     };
 
     let uploadMiddleware;
+    const s3Storage = getS3Storage();
 
-    if (settings?.useS3Storage && settings.awsAccessKeyId && settings.awsSecretAccessKey && settings.awsRegion && settings.awsS3Bucket) {
-      const s3 = new S3Client({
-        region: settings.awsRegion,
-        credentials: {
-          accessKeyId: settings.awsAccessKeyId,
-          secretAccessKey: settings.awsSecretAccessKey
-        }
-      });
-
-      const s3Storage = multerS3({
-        s3: s3,
-        bucket: settings.awsS3Bucket,
-        contentType: multerS3.AUTO_CONTENT_TYPE,
-        key: function (req, file, cb) {
-          const ext = path.extname(file.originalname).toLowerCase();
-          const randomName = crypto.randomBytes(16).toString('hex');
-          cb(null, `reports/${randomName}${ext}`);
-        }
-      });
-
+    if (s3Storage) {
       uploadMiddleware = multer({ storage: s3Storage, limits: { fileSize: 10 * 1024 * 1024 }, fileFilter }).single('report');
     } else {
       uploadMiddleware = multer({ storage: docStorage, limits: { fileSize: 10 * 1024 * 1024 }, fileFilter }).single('report');
@@ -87,7 +67,7 @@ const uploadDocument = async (req, res, next) => {
         return res.status(400).json({ message: err.message || 'File upload error' });
       }
       // Attach a flag to req so controller knows if it was S3 or Local
-      req.uploadType = (settings?.useS3Storage && settings.awsS3Bucket) ? 'S3' : 'LOCAL';
+      req.uploadType = s3Storage ? 'S3' : 'LOCAL';
       next();
     });
   } catch (error) {

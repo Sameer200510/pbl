@@ -4,7 +4,8 @@ import geuLogo from '../assets/Graphic-Era-University-GEU-Dehradun-Logo.jpg';
 const StudentLayout = () => {
   const location = useLocation();
   const navItems = [
-    { name: 'My Team', path: '/student/dashboard', icon: '👥' }
+    { name: 'My Team', path: '/student/dashboard', icon: '👥' },
+    { name: 'Peer Reviews', path: '/student/peer-reviews', icon: '📝' }
   ];
 
   const userInfoString = localStorage.getItem('userInfo');

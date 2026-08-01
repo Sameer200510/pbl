@@ -254,7 +254,7 @@ const AdminUserManagement = () => {
       </div>
 
       {/* Bulk Upload Section */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
         <h2 className="text-xl font-bold mb-4 dark:text-white">Bulk Upload (Moodle Format CSV)</h2>
         <p className="text-sm text-gray-500 mb-4">CSV Columns required: username, firstname, lastname, email, course1, role1, password. (role1 must be 'student' or 'editingteacher')</p>
         
@@ -289,7 +289,7 @@ const AdminUserManagement = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -367,7 +367,7 @@ const AdminUserManagement = () => {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 dark:text-white">Add New User</h2>
             <form onSubmit={handleManualAdd}>
               <div className="space-y-4">
@@ -394,7 +394,7 @@ const AdminUserManagement = () => {
       {/* Edit Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 dark:text-white">Edit User</h2>
             <form onSubmit={handleEdit}>
               <div className="space-y-4">
@@ -413,7 +413,7 @@ const AdminUserManagement = () => {
       {/* Reset Password Modal */}
       {showResetModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 dark:text-white">Reset Password (Syncs with Moodle)</h2>
             <form onSubmit={handleResetPassword}>
               <div className="space-y-4">
@@ -431,7 +431,7 @@ const AdminUserManagement = () => {
       {/* Column Mapping Modal */}
       {showMappingModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4 dark:text-white">Map Excel Columns</h2>
             <p className="text-sm text-gray-500 mb-6">
               Match your Excel headers to the system's fields. Fields marked with <span className="text-red-500">*</span> are required.

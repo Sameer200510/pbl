@@ -61,6 +61,7 @@ model Student {
   teamMembers TeamMember[]
   reevaluationAssignments ReevaluationAssignment[]
   interactionRecords InteractionRecord[]
+  microMentorEvaluations MicroMentorEvaluation[]
 }
 
 model Pbl {
@@ -103,6 +104,8 @@ model Team {
   submissions      Submission[]
   phaseEvaluators  TeamPhaseEvaluator[]
   interactions     Interaction[]
+  reviewerAssignments MicroMentorAssignment[] @relation("ReviewerAssignments")
+  examineeAssignments MicroMentorAssignment[] @relation("ExamineeAssignments")
 }
 
 model TeamMember {
@@ -131,6 +134,7 @@ model Phase {
   evaluations      Evaluation[]
   teamEvaluators   TeamPhaseEvaluator[]
   reevaluationAssignments ReevaluationAssignment[]
+  microMentorAssignments MicroMentorAssignment[]
 
   @@unique([pblId, phaseNumber])
 }
@@ -257,8 +261,39 @@ model InteractionRecord {
   interaction   Interaction @relation(fields: [interactionId], references: [id], onDelete: Cascade)
   studentId     String
   student       Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  isPresent     Boolean
-  remark        String?
+  isPresent     Boolean     @default(true)
+  remark        String?     @db.Text
 
   @@unique([interactionId, studentId])
+}
+
+model MicroMentorAssignment {
+  id             String   @id @default(uuid())
+  phaseId        String
+  reviewerTeamId String
+  examineeTeamId String
+  createdAt      DateTime @default(now())
+
+  phase          Phase    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  reviewerTeam   Team     @relation("ReviewerAssignments", fields: [reviewerTeamId], references: [id], onDelete: Cascade)
+  examineeTeam   Team     @relation("ExamineeAssignments", fields: [examineeTeamId], references: [id], onDelete: Cascade)
+
+  evaluations    MicroMentorEvaluation[]
+
+  @@unique([phaseId, reviewerTeamId]) // A team reviews 1 team per phase
+  @@unique([phaseId, examineeTeamId]) // A team is reviewed by 1 team per phase
+}
+
+model MicroMentorEvaluation {
+  id                String   @id @default(uuid())
+  assignmentId      String
+  reviewerStudentId String
+  marksData         Json     // Stores criteria scores identical to Evaluator logic
+  totalMarks        Float
+  evaluatedAt       DateTime @default(now())
+
+  assignment        MicroMentorAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  reviewerStudent   Student               @relation(fields: [reviewerStudentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, reviewerStudentId])
 }

@@ -100,7 +100,7 @@ const AdminPhaseConfig = () => {
     <div className="space-y-6 fade-in">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Phase Configuration Builder</h2>
 
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 p-6">
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select PBL</label>
           <select 

@@ -10,10 +10,12 @@ import AdminUserManagement from './pages/AdminUserManagement';
 import AdminPhaseConfig from './pages/AdminPhaseConfig';
 import AdminResult from './pages/AdminResult';
 import AdminReevaluation from './pages/AdminReevaluation';
+import AdminMicroMentor from './pages/AdminMicroMentor';
 import AdminLayout from './components/AdminLayout';
 import StudentLayout from './components/StudentLayout';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentPhaseSubmission from './pages/StudentPhaseSubmission';
+import StudentPeerReviews from './pages/StudentPeerReviews';
 import FacultyLayout from './components/FacultyLayout';
 import FacultyDashboard from './pages/FacultyDashboard';
 import FacultyMentorTeams from './pages/FacultyMentorTeams';
@@ -49,6 +51,7 @@ function App() {
           <Route path="reports" element={<AdminReports />} />
           <Route path="results" element={<AdminResult />} />
           <Route path="reevaluation" element={<AdminReevaluation />} />
+          <Route path="micro-mentor" element={<AdminMicroMentor />} />
         </Route>
         
         {/* Student Routes */}
@@ -56,6 +59,7 @@ function App() {
           <Route index element={<Navigate to="/student/dashboard" replace />} />
           <Route path="dashboard" element={<StudentDashboard />} />
           <Route path="phase/:phaseId" element={<StudentPhaseSubmission />} />
+          <Route path="peer-reviews" element={<StudentPeerReviews />} />
         </Route>
         
         {/* Faculty Routes */}

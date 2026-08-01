@@ -107,10 +107,10 @@ const AdminResult = () => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 p-6 mb-6">
         <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select PBL Session</label>
         <select 
-          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
           value={selectedPbl} 
           onChange={(e) => setSelectedPbl(e.target.value)}
         >
@@ -124,7 +124,7 @@ const AdminResult = () => {
       {loading && <p className="text-center text-gray-500 mt-8">Loading Results...</p>}
 
       {selectedPbl && !loading && marksData.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 overflow-hidden">
            <div className="border-b border-gray-100 dark:border-gray-700 p-4">
              <div className="flex gap-2 flex-wrap">
                {activePblDetails?.phases?.map(phase => (
@@ -199,8 +199,8 @@ const AdminResult = () => {
 
       {/* Edit Modal */}
       {editingStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-4">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Edit Marks</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               Editing marks for <strong>{editingStudent.name}</strong> ({editingStudent.enrollmentNumber}) in Phase {activeMarksPhase}.

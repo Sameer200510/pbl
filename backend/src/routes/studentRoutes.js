@@ -10,7 +10,9 @@ const {
   inviteMember,
   removeMember,
   getInvitations,
-  respondToInvitation
+  respondToInvitation,
+  getMicroMentorTasks,
+  submitMicroMentorGrade
 } = require('../controllers/studentController');
 const { protect, authorize } = require('../middlewares/auth');
 const { uploadDocument } = require('../middlewares/upload');
@@ -33,5 +35,9 @@ router.post('/phase', uploadDocument, submitPhase);
 
 // Fetch details
 router.get('/by-roll/:rollNo', getStudentByRoll);
+
+// Micro Mentoring
+router.get('/micro-mentor/tasks', getMicroMentorTasks);
+router.post('/micro-mentor/evaluate/:assignmentId', submitMicroMentorGrade);
 
 module.exports = router;

@@ -158,7 +158,7 @@ const AdminReports = () => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 p-6 mb-6">
         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select PBL</label>
         <select 
           value={selectedPbl} 
@@ -175,8 +175,8 @@ const AdminReports = () => {
       {selectedPbl && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Teams & Members Report */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full hover:shadow-md transition-shadow group">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-gray-800 rounded p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full hover:shadow-md transition-shadow group">
+            <div className="w-14 h-14 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
               👥
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Teams & Members</h3>
@@ -184,15 +184,15 @@ const AdminReports = () => {
             <button 
               disabled={loading}
               onClick={handleExportTeams}
-              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-50"
+              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded transition-colors shadow-sm disabled:opacity-50"
             >
               ⬇️ Download Excel
             </button>
           </div>
 
           {/* Mentors Report */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full hover:shadow-md transition-shadow group">
-            <div className="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-gray-800 rounded p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full hover:shadow-md transition-shadow group">
+            <div className="w-14 h-14 rounded bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
               👨‍🏫
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Mentor Allocations</h3>
@@ -200,7 +200,7 @@ const AdminReports = () => {
             <button 
               disabled={loading}
               onClick={handleExportMentors}
-              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-50"
+              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded transition-colors shadow-sm disabled:opacity-50"
             >
               ⬇️ Download Excel
             </button>
@@ -208,8 +208,8 @@ const AdminReports = () => {
 
           {/* Evaluator Reports (Dynamic) */}
           {activePhases.map(phase => (
-            <div key={phase.id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full hover:shadow-md transition-shadow group">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+            <div key={phase.id} className="bg-white dark:bg-gray-800 rounded p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full hover:shadow-md transition-shadow group">
+              <div className="w-14 h-14 rounded bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                 📝
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Phase {phase.phaseNumber} Evaluators</h3>
@@ -217,7 +217,7 @@ const AdminReports = () => {
               <button 
                 disabled={loading}
                 onClick={() => handleExportEvaluators(phase)}
-                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded transition-colors shadow-sm disabled:opacity-50"
               >
                 ⬇️ Download Excel
               </button>
@@ -228,7 +228,7 @@ const AdminReports = () => {
       )}
 
       {selectedPbl && marksData.length > 0 && (
-        <div className="mt-12 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="mt-12 bg-white dark:bg-gray-800 rounded p-6 shadow-sm border border-gray-100 dark:border-gray-700">
            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-4 gap-4">
              <div>
                <h3 className="text-xl font-bold text-gray-800 dark:text-white">Student Marks Overview</h3>
@@ -252,13 +252,13 @@ const AdminReports = () => {
            <div className="flex justify-end mb-4">
               <button 
                 onClick={() => handleExportMarks(activeMarksPhase)}
-                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-sm flex items-center gap-2 transition-all w-full sm:w-auto justify-center"
+                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded shadow-sm flex items-center gap-2 transition-all w-full sm:w-auto justify-center"
               >
                 <span>📊</span> Export Phase {activeMarksPhase} Marks to Excel
               </button>
            </div>
            
-           <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+           <div className="overflow-x-auto rounded border border-gray-200 dark:border-gray-700 shadow-sm">
              <table className="w-full text-sm text-left">
                <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-900 dark:text-gray-300">
                  <tr>

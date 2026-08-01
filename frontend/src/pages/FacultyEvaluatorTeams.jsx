@@ -380,6 +380,20 @@ const FacultyEvaluatorTeams = () => {
                             </a>
                           </div>
                         )}
+
+                        {(() => {
+                          const mmAssignment = team.examineeAssignments?.find(a => a.phaseId === phase?.id);
+                          if (!mmAssignment) return null;
+                          const evalsCount = mmAssignment.evaluations?.length || 0;
+                          const avgScore = evalsCount > 0
+                            ? (mmAssignment.evaluations.reduce((sum, ev) => sum + ev.totalMarks, 0) / evalsCount).toFixed(2)
+                            : 'Pending';
+                          return (
+                            <div className="mt-2 text-sm font-semibold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 p-2 rounded border border-indigo-100 dark:border-indigo-800 text-center">
+                              🤝 Peer Review Avg Score: {avgScore} ({evalsCount} reviews)
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <button 

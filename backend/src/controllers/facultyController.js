@@ -17,7 +17,8 @@ const getMentoredTeams = async (req, res, next) => {
         pbl: { include: { phases: true, pblFaculties: { where: { facultyId } } } },
         leader: { include: { user: true } },
         members: { include: { student: { include: { user: true } } } },
-        submissions: { include: { mentorGrades: true } }
+        submissions: { include: { mentorGrades: true } },
+        examineeAssignments: { include: { evaluations: true } }
       }
     });
 
@@ -53,7 +54,8 @@ const getEvaluatedTeams = async (req, res, next) => {
         submissions: { include: { mentorGrades: { orderBy: { gradedAt: 'desc' } } } },
         phaseEvaluators: {
           where: { evaluatorId: facultyId }
-        }
+        },
+        examineeAssignments: { include: { evaluations: true } }
       }
     });
 

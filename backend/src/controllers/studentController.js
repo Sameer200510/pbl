@@ -659,6 +659,101 @@ const respondToInvitation = async (req, res, next) => {
   }
 };
 
+// @desc    Get Peer Evaluation Tasks for Student
+// @route   GET /api/student/micro-mentor/tasks
+// @access  Private/Student
+const getMicroMentorTasks = async (req, res, next) => {
+  try {
+    const studentId = req.user.studentProfileId;
+
+    // Get all teams this student belongs to
+    const myTeams = await prisma.teamMember.findMany({
+      where: { studentId, status: 'ACCEPTED' },
+      select: { teamId: true }
+    });
+    const teamIds = myTeams.map(t => t.teamId);
+
+    // Find assignments where the reviewerTeam is one of the student's teams
+    const assignments = await prisma.microMentorAssignment.findMany({
+      where: { reviewerTeamId: { in: teamIds } },
+      include: {
+        phase: true,
+        examineeTeam: {
+          include: {
+            submissions: true
+          }
+        },
+        evaluations: {
+          where: { reviewerStudentId: studentId } // check if already evaluated by this student
+        }
+      }
+    });
+
+    // Format response to hide examinee identity
+    const tasks = assignments.map(assignment => {
+      const submission = assignment.examineeTeam.submissions.find(s => s.phaseId === assignment.phaseId);
+      
+      return {
+        id: assignment.id,
+        phase: assignment.phase,
+        isEvaluated: assignment.evaluations.length > 0,
+        myEvaluation: assignment.evaluations[0] || null,
+        examineeProject: {
+          synopsisUrl: submission ? submission.synopsisUrl : null,
+          fileUrls: submission ? submission.fileUrls : []
+        }
+      };
+    });
+
+    res.json(tasks);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Submit Micro Mentor Grade
+// @route   POST /api/student/micro-mentor/evaluate/:assignmentId
+// @access  Private/Student
+const submitMicroMentorGrade = async (req, res, next) => {
+  try {
+    const { assignmentId } = req.params;
+    const { marksData } = req.body;
+    const studentId = req.user.studentProfileId;
+
+    const assignment = await prisma.microMentorAssignment.findUnique({
+      where: { id: assignmentId }
+    });
+
+    if (!assignment) throw new Error('Assignment not found');
+
+    const totalMarks = Object.values(marksData).reduce((sum, val) => sum + (Number(val) || 0), 0);
+
+    const evaluation = await prisma.microMentorEvaluation.upsert({
+      where: {
+        assignmentId_reviewerStudentId: {
+          assignmentId,
+          reviewerStudentId: studentId
+        }
+      },
+      update: {
+        marksData,
+        totalMarks,
+        evaluatedAt: new Date()
+      },
+      create: {
+        assignmentId,
+        reviewerStudentId: studentId,
+        marksData,
+        totalMarks
+      }
+    });
+
+    res.json({ message: 'Peer evaluation submitted successfully!', evaluation });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createTeam,
   getMyTeam,
@@ -669,5 +764,7 @@ module.exports = {
   inviteMember,
   removeMember,
   getInvitations,
-  respondToInvitation
+  respondToInvitation,
+  getMicroMentorTasks,
+  submitMicroMentorGrade
 };

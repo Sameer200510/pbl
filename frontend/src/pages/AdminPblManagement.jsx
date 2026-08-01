@@ -139,7 +139,7 @@ const AdminPblManagement = () => {
           </button>
         </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -228,8 +228,8 @@ const AdminPblManagement = () => {
 
       {/* Create / Edit PBL Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-2xl w-full max-w-md">
             <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
               {isEditing ? 'Edit PBL Subject' : 'Create New PBL'}
             </h3>
@@ -291,8 +291,8 @@ const AdminPblManagement = () => {
 
       {/* Timeline Modal */}
       {showTimelineModal && selectedPbl && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-2xl w-full max-w-lg">
             <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Manage Team Formation Timeline: {selectedPbl.subject}</h3>
             
             <div className="space-y-4">

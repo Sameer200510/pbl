@@ -37,7 +37,9 @@ const {
   adminUpdateMarks,
   getAllStudents,
   bulkDeleteTeams,
-  bulkUploadTeams
+  bulkUploadTeams,
+  assignMicroMentors,
+  getMicroMentorAssignments
 } = require('../controllers/adminController');
 const { getInteractions } = require('../controllers/facultyController');
 const { protect, authorize } = require('../middlewares/auth');
@@ -101,5 +103,9 @@ router.post('/teams/:id/members', addTeamMemberAdmin);
 router.delete('/teams/:id/members/:studentId', removeTeamMemberAdmin);
 
 router.get('/teams/pbl/:pblId', getTeamsForPbl);
+
+// Micro Mentoring
+router.post('/micro-mentor/assign', assignMicroMentors);
+router.get('/micro-mentor/:pblId', getMicroMentorAssignments);
 
 module.exports = router;
