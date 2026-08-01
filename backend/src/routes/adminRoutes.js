@@ -67,24 +67,9 @@ router.get('/moodle-test', async (req, res) => {
     
     const results = {};
     
-    // Test 1: Just grade, attemptnumber 0, no addattempt, no plugindata
+    // Test 4: Include workflowstate and applytoall, but no plugindata
     try {
-      const p1 = new URLSearchParams({
-        wstoken: MOODLE_API_TOKEN,
-        wsfunction: 'mod_assign_save_grade',
-        moodlewsrestformat: 'json',
-        assignmentid: assignmentId,
-        userid: moodleUserId,
-        grade: 1.0,
-        attemptnumber: 0
-      });
-      const r1 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p1.toString());
-      results.test1 = r1.data;
-    } catch(e) { results.test1 = e.message; }
-
-    // Test 2: grade, attemptnumber -1, addattempt 0
-    try {
-      const p2 = new URLSearchParams({
+      const p4 = new URLSearchParams({
         wstoken: MOODLE_API_TOKEN,
         wsfunction: 'mod_assign_save_grade',
         moodlewsrestformat: 'json',
@@ -92,15 +77,55 @@ router.get('/moodle-test', async (req, res) => {
         userid: moodleUserId,
         grade: 1.0,
         attemptnumber: -1,
-        addattempt: 0
+        addattempt: 0,
+        workflowstate: 'graded',
+        applytoall: 1
       });
-      const r2 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p2.toString());
-      results.test2 = r2.data;
-    } catch(e) { results.test2 = e.message; }
+      const r4 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p4.toString());
+      results.test4 = r4.data;
+    } catch(e) { results.test4 = e.message; }
 
-    // Test 3: with plugindata and attempt 0
+    // Test 5: Include workflowstate but applytoall = 0 (for non-group assignments)
     try {
-      const p3 = new URLSearchParams({
+      const p5 = new URLSearchParams({
+        wstoken: MOODLE_API_TOKEN,
+        wsfunction: 'mod_assign_save_grade',
+        moodlewsrestformat: 'json',
+        assignmentid: assignmentId,
+        userid: moodleUserId,
+        grade: 1.0,
+        attemptnumber: -1,
+        addattempt: 0,
+        workflowstate: 'graded',
+        applytoall: 0
+      });
+      const r5 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p5.toString());
+      results.test5 = r5.data;
+    } catch(e) { results.test5 = e.message; }
+
+    // Test 6: Everything including plugindata
+    try {
+      const p6 = new URLSearchParams({
+        wstoken: MOODLE_API_TOKEN,
+        wsfunction: 'mod_assign_save_grade',
+        moodlewsrestformat: 'json',
+        assignmentid: assignmentId,
+        userid: moodleUserId,
+        grade: 1.0,
+        attemptnumber: -1,
+        addattempt: 0,
+        workflowstate: 'graded',
+        applytoall: 0,
+        'plugindata[assignfeedbackcomments_editor][text]': 'test',
+        'plugindata[assignfeedbackcomments_editor][format]': 1
+      });
+      const r6 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p6.toString());
+      results.test6 = r6.data;
+    } catch(e) { results.test6 = e.message; }
+    
+    // Test 7: Everything with attemptnumber 0 instead of -1
+    try {
+      const p7 = new URLSearchParams({
         wstoken: MOODLE_API_TOKEN,
         wsfunction: 'mod_assign_save_grade',
         moodlewsrestformat: 'json',
@@ -109,12 +134,14 @@ router.get('/moodle-test', async (req, res) => {
         grade: 1.0,
         attemptnumber: 0,
         addattempt: 0,
-        'plugindata[assignfeedbackcomments_editor][text]': 'Test feedback link',
+        workflowstate: 'graded',
+        applytoall: 0,
+        'plugindata[assignfeedbackcomments_editor][text]': 'test',
         'plugindata[assignfeedbackcomments_editor][format]': 1
       });
-      const r3 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p3.toString());
-      results.test3 = r3.data;
-    } catch(e) { results.test3 = e.message; }
+      const r7 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p7.toString());
+      results.test7 = r7.data;
+    } catch(e) { results.test7 = e.message; }
 
     res.json(results);
   } catch(error) {
