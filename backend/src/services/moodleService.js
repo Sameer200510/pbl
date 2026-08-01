@@ -265,7 +265,6 @@ const syncGradeToMoodle = async (moodleId, assignmentId, grade, feedback) => {
       grade: grade,
       attemptnumber: -1,
       addattempt: 0,
-      applytoall: 1,
       'plugindata[assignfeedbackcomments_editor][text]': feedback,
       'plugindata[assignfeedbackcomments_editor][format]': 1
     });
