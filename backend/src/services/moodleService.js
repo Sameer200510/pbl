@@ -165,6 +165,34 @@ const getMoodleCourseUsers = async (courseId) => {
   }
 };
 
+const resolveAssignmentId = async (config, providedId) => {
+  try {
+    const params = new URLSearchParams({
+      wstoken: config.MOODLE_API_TOKEN,
+      wsfunction: 'mod_assign_get_assignments',
+      moodlewsrestformat: 'json'
+    });
+    const res = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, params.toString());
+    
+    if (res.data && res.data.courses) {
+      for (const course of res.data.courses) {
+        for (const assignment of course.assignments) {
+          if (assignment.id == providedId) {
+            return assignment.id; // User provided the true instance ID
+          }
+          if (assignment.cmid == providedId) {
+            console.log(`[MoodleSync] Auto-resolved CMID ${providedId} to Assignment Instance ID ${assignment.id}`);
+            return assignment.id; // User provided CMID from URL, resolve it!
+          }
+        }
+      }
+    }
+  } catch(e) {
+    console.error('[MoodleSync] Failed to resolve assignment ID:', e.message);
+  }
+  return providedId; // Fallback to what was provided
+};
+
 const uploadFileToMoodle = async (moodleId, assignmentId, fileUrl) => {
   try {
     const config = await getMoodleConfig();
@@ -217,17 +245,23 @@ const uploadFileToMoodle = async (moodleId, assignmentId, fileUrl) => {
     const moodleUserId = userRes.data[0]?.id;
     if (!moodleUserId) throw new Error('Moodle User not found');
 
+    const trueAssignmentId = await resolveAssignmentId(config, assignmentId);
+
     const submitParams = new URLSearchParams({
       wstoken: config.MOODLE_API_TOKEN,
       wsfunction: 'mod_assign_save_submission',
       moodlewsrestformat: 'json',
-      assignmentid: assignmentId,
+      assignmentid: trueAssignmentId,
       'plugindata[files_filemanager]': draftItemId 
     });
 
-    await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, submitParams.toString());
+    const submitRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, submitParams.toString());
+    
+    if (submitRes.data && submitRes.data.exception) {
+      throw new Error(submitRes.data.message || submitRes.data.exception);
+    }
 
-    console.log(`[MoodleSync] Successfully submitted actual file for ${moodleId} to assignment ${assignmentId}`);
+    console.log(`[MoodleSync] Successfully submitted actual file for ${moodleId} to assignment ${trueAssignmentId}`);
     return true;
 
   } catch (error) {
@@ -255,16 +289,19 @@ const syncGradeToMoodle = async (moodleId, assignmentId, grade, feedback) => {
     const userRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, userParams.toString());
     const moodleUserId = userRes.data[0]?.id;
     if (!moodleUserId) throw new Error('Moodle User not found');
+    
+    const trueAssignmentId = await resolveAssignmentId(config, assignmentId);
 
     const gradeParams = new URLSearchParams({
       wstoken: config.MOODLE_API_TOKEN,
       wsfunction: 'mod_assign_save_grade',
       moodlewsrestformat: 'json',
-      assignmentid: assignmentId,
+      assignmentid: trueAssignmentId,
       userid: moodleUserId,
       grade: parseFloat(grade).toFixed(2),
       attemptnumber: -1, // Try -1 first
       addattempt: 0,
+      workflowstate: 'graded',
       'plugindata[assignfeedbackcomments_editor][text]': feedback,
       'plugindata[assignfeedbackcomments_editor][format]': 1
     });
@@ -284,7 +321,7 @@ const syncGradeToMoodle = async (moodleId, assignmentId, grade, feedback) => {
         throw new Error(gradeRes.data.message || gradeRes.data.exception);
       }
     }
-    console.log(`[MoodleSync] Synced grade for ${moodleId} to assignment ${assignmentId}`);
+    console.log(`[MoodleSync] Synced grade for ${moodleId} to assignment ${trueAssignmentId}`);
     return true;
   } catch (error) {
     console.error(`[MoodleSync] Failed grade sync:`, error.message);
