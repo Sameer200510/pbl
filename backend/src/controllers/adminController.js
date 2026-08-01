@@ -657,6 +657,7 @@ const resetUserPassword = async (req, res, next) => {
 // @access  Private/Admin
 const getDashboardStats = async (req, res, next) => {
   try {
+    const pblId = req.query.pblId;
     let studentCount = 0;
 
     if (pblId) {
