@@ -246,6 +246,112 @@ const bulkUploadUsers = async (req, res, next) => {
   }
 };
 
+// @desc    Bulk Upload Users via JSON (mapped)
+// @route   POST /api/users/bulk-json
+// @access  Private/Admin
+const bulkUploadUsersJson = async (req, res, next) => {
+  try {
+    const data = req.body;
+    if (!Array.isArray(data) || data.length === 0) {
+      res.status(400);
+      throw new Error('Please provide an array of user objects');
+    }
+
+    let addedCount = 0;
+    let updatedCount = 0;
+
+    for (const row of data) {
+      const username = row['username'];
+      const firstname = row['firstname'] || '';
+      const lastname = row['lastname'] || '';
+      const email = row['email'];
+      const course1 = row['course1'];
+      const role1 = row['role1'];
+      const rawPassword = row['password'] || 'Pbl@1234';
+      const semester = parseInt(row['semester']) || 1;
+      const section = row['section'] ? String(row['section']).toUpperCase() : 'A';
+      const rollno = row['rollno'] ? String(row['rollno']) : String(username);
+
+      if (!username || !email || !role1) continue;
+
+      const name = `${firstname} ${lastname}`.trim() || username;
+      const roleEnum = role1.toLowerCase() === 'student' ? 'STUDENT' : 'FACULTY';
+      
+      const existingUser = await prisma.user.findFirst({
+        where: { OR: [{ email }, { studentProfile: { enrollmentNumber: rollno } }, { studentProfile: { enrollmentNumber: String(username) } }] }
+      });
+
+      if (!existingUser) {
+        const passwordHash = await bcrypt.hash(rawPassword, 10);
+        let userData = {
+          name,
+          email,
+          passwordHash,
+          role: roleEnum,
+          requiresPasswordChange: true
+        };
+
+        if (roleEnum === 'STUDENT') {
+          userData.studentProfile = {
+            create: { enrollmentNumber: rollno, moodleId: String(username), section, semester }
+          };
+        } else {
+          userData.facultyProfile = {
+            create: { department: 'General', moodleId: String(username) }
+          };
+        }
+
+        const newUser = await prisma.user.create({
+          data: userData,
+          include: { facultyProfile: true }
+        });
+
+        if (roleEnum === 'FACULTY' && course1) {
+          const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
+          if (pbl) await assignPblFacultyIds(pbl.id, newUser.facultyProfile.id);
+        }
+
+        addedCount++;
+      } else {
+        const updatedUser = await prisma.user.update({
+          where: { id: existingUser.id },
+          data: { name },
+          include: { facultyProfile: true, studentProfile: true }
+        });
+
+        if (roleEnum === 'STUDENT' && updatedUser.studentProfile) {
+          await prisma.student.update({
+            where: { id: updatedUser.studentProfile.id },
+            data: { 
+              moodleId: updatedUser.studentProfile.moodleId || String(username),
+              semester: semester,
+              section: section
+            }
+          });
+        }
+        
+        if (roleEnum === 'FACULTY' && updatedUser.facultyProfile) {
+          if (!updatedUser.facultyProfile.moodleId) {
+            await prisma.faculty.update({
+              where: { id: updatedUser.facultyProfile.id },
+              data: { moodleId: String(username) }
+            });
+          }
+          if (course1) {
+            const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
+            if (pbl) await assignPblFacultyIds(pbl.id, updatedUser.facultyProfile.id);
+          }
+        }
+        updatedCount++;
+      }
+    }
+
+    res.json({ message: `Success! Added ${addedCount} and updated ${updatedCount} users.` });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Update user
 // @route   PUT /api/users/:id
 // @access  Private/Admin
@@ -371,5 +477,6 @@ module.exports = {
   updateUser,
   deleteUser,
   resetUserPassword,
-  bulkDeleteUsers
+  bulkDeleteUsers,
+  bulkUploadUsersJson
 };

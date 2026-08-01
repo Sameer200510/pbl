@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 
 const AdminUserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -42,22 +43,84 @@ const AdminUserManagement = () => {
     fetchUsers();
   }, []);
 
+  const [showMappingModal, setShowMappingModal] = useState(false);
+  const [excelHeaders, setExcelHeaders] = useState([]);
+  const [excelData, setExcelData] = useState([]);
+  const [columnMapping, setColumnMapping] = useState({
+    username: '', email: '', role1: '', firstname: '', lastname: '', password: '', semester: '', section: '', rollno: '', course1: ''
+  });
+
+  const systemFields = [
+    { key: 'username', label: 'Username (Moodle ID)', required: true },
+    { key: 'email', label: 'Email', required: true },
+    { key: 'role1', label: 'Role (student/faculty)', required: true },
+    { key: 'firstname', label: 'First Name', required: false },
+    { key: 'lastname', label: 'Last Name', required: false },
+    { key: 'password', label: 'Password', required: false },
+    { key: 'semester', label: 'Semester', required: false },
+    { key: 'section', label: 'Section', required: false },
+    { key: 'rollno', label: 'University Roll No', required: false },
+    { key: 'course1', label: 'Course (for Faculty)', required: false },
+  ];
+
   const handleFileUpload = (e) => {
-    setUploadFile(e.target.files[0]);
+    const file = e.target.files[0];
+    setUploadFile(file);
     setUploadError('');
     setUploadSuccess('');
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const bstr = evt.target.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws);
+        
+        if (data.length > 0) {
+          const headers = Object.keys(data[0]);
+          setExcelHeaders(headers);
+          setExcelData(data);
+          
+          // Auto-map if headers match exactly
+          const initialMapping = { ...columnMapping };
+          systemFields.forEach(field => {
+            const match = headers.find(h => h.toLowerCase().replace(/\s+/g, '') === field.key.toLowerCase());
+            if (match) initialMapping[field.key] = match;
+          });
+          setColumnMapping(initialMapping);
+          setShowMappingModal(true);
+        } else {
+          setUploadError('The uploaded file is empty or invalid.');
+        }
+      };
+      reader.readAsBinaryString(file);
+    }
   };
 
-  const submitBulkUpload = async (e) => {
-    e.preventDefault();
-    if (!uploadFile) return setUploadError('Please select a file');
+  const confirmMappingAndUpload = async () => {
+    // Validate required fields
+    if (!columnMapping.username || !columnMapping.email || !columnMapping.role1) {
+      return alert('Username, Email, and Role fields are REQUIRED. Please map them to a column.');
+    }
     
-    const data = new FormData();
-    data.append('file', uploadFile);
+    // Transform data based on mapping
+    const mappedData = excelData.map(row => {
+      let newRow = {};
+      Object.keys(columnMapping).forEach(sysField => {
+        const excelCol = columnMapping[sysField];
+        if (excelCol && row[excelCol] !== undefined) {
+          newRow[sysField] = row[excelCol];
+        }
+      });
+      return newRow;
+    });
 
     try {
+      setShowMappingModal(false);
       setUploadLoading(true);
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/bulk`, data, getAuthHeader());
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/bulk-json`, mappedData, getAuthHeader());
       setUploadSuccess(res.data.message);
       setUploadFile(null);
       document.getElementById('fileUploadInput').value = '';
@@ -189,7 +252,7 @@ const AdminUserManagement = () => {
         {uploadError && <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-lg">{uploadError}</div>}
         {uploadSuccess && <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-lg">{uploadSuccess}</div>}
 
-        <form onSubmit={submitBulkUpload} className="flex gap-4 items-center">
+        <div className="flex gap-4 items-center">
           <input 
             type="file" 
             id="fileUploadInput"
@@ -197,14 +260,7 @@ const AdminUserManagement = () => {
             onChange={handleFileUpload}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:text-gray-400"
           />
-          <button 
-            type="submit" 
-            disabled={uploadLoading || !uploadFile}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {uploadLoading ? 'Uploading...' : 'Upload Users'}
-          </button>
-        </form>
+        </div>
       </div>
 
       {/* Users Table Controls */}
@@ -351,6 +407,60 @@ const AdminUserManagement = () => {
                 <button type="submit" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Reset Password</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Column Mapping Modal */}
+      {showMappingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Map Excel Columns</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Match your Excel headers to the system's fields. Fields marked with <span className="text-red-500">*</span> are required.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {systemFields.map(field => (
+                <div key={field.key} className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                  </label>
+                  <select
+                    className="p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+                    value={columnMapping[field.key]}
+                    onChange={(e) => setColumnMapping({...columnMapping, [field.key]: e.target.value})}
+                  >
+                    <option value="">-- Ignore / Not Provided --</option>
+                    {excelHeaders.map(header => (
+                      <option key={header} value={header}>{header}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-8 flex justify-end gap-3 border-t dark:border-gray-700 pt-4">
+              <button 
+                type="button" 
+                onClick={() => {
+                  setShowMappingModal(false);
+                  setUploadFile(null);
+                  document.getElementById('fileUploadInput').value = '';
+                }} 
+                className="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={confirmMappingAndUpload}
+                disabled={uploadLoading}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center gap-2"
+              >
+                {uploadLoading ? 'Uploading...' : 'Confirm & Upload'}
+              </button>
+            </div>
           </div>
         </div>
       )}

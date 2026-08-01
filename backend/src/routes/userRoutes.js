@@ -9,6 +9,7 @@ const {
   deleteUser,
   resetUserPassword,
   bulkUploadUsers,
+  bulkUploadUsersJson,
   bulkDeleteUsers
 } = require('../controllers/userController');
 
@@ -18,6 +19,7 @@ router.use(protect, authorize('ADMIN', 'SUPER_ADMIN'));
 router.get('/', getAllUsers);
 router.post('/', createUser);
 router.post('/bulk', uploadExcel.single('file'), bulkUploadUsers);
+router.post('/bulk-json', bulkUploadUsersJson);
 router.post('/bulk-delete', bulkDeleteUsers);
 router.put('/:id', updateUser);
 router.delete('/:id', deleteUser);
