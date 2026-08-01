@@ -207,7 +207,7 @@ const StudentDashboard = () => {
                 Mentor: {viewingTeam.mentor?.user?.name ? (
                   <span className="font-semibold text-gray-700 dark:text-gray-300">
                     {viewingTeam.mentor.user.name} 
-                    {viewingTeam.mentor.venue && <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">📍 {viewingTeam.mentor.venue}</span>}
+                    {(viewingTeam.mentor.venue || viewingTeam.phaseEvaluators?.[0]?.evaluator?.venue) && <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">📍 {viewingTeam.mentor.venue || viewingTeam.phaseEvaluators?.[0]?.evaluator?.venue}</span>}
                   </span>
                 ) : (
                   <span className="italic">Not assigned yet</span>
@@ -303,12 +303,7 @@ const StudentDashboard = () => {
                       )}
                     </div>
                     <h4 className="text-lg font-bold text-gray-800 dark:text-white mb-1">Phase {phase} Synopsis / Report</h4>
-                    {evaluator && (
-                      <div className="text-xs text-gray-500 mb-2 mt-1">
-                        Evaluator: <span className="font-semibold text-gray-700 dark:text-gray-300">{evaluator.user.name}</span>
-                        {evaluator.venue && <span className="ml-2 bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">📍 {evaluator.venue}</span>}
-                      </div>
-                    )}
+
                     {deadline && (
                       <div className="text-xs text-red-500 font-semibold mb-2 mt-1">
                         Deadline: {formatDate(deadline)}
