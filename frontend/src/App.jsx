@@ -25,9 +25,12 @@ import SuperAdminLayout from './components/SuperAdminLayout';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminSettings from './pages/SuperAdminSettings';
 
+import DeveloperInfo from './components/DeveloperInfo';
+
 function App() {
   return (
     <Router>
+      <DeveloperInfo />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/change-password" element={<ChangePassword />} />
