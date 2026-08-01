@@ -29,10 +29,7 @@ const StudentPeerReviews = () => {
   };
 
   const PEER_REVIEW_CRITERIA = [
-    { field: 'Innovation & Idea', maxMarks: 10 },
-    { field: 'Technical Implementation', maxMarks: 10 },
-    { field: 'Presentation & Report', maxMarks: 10 },
-    { field: 'Overall Impact', maxMarks: 10 }
+    { field: 'Overall Project Score', maxMarks: 10 }
   ];
 
   const openEvaluationModal = (task) => {
@@ -174,20 +171,7 @@ const StudentPeerReviews = () => {
                 </div>
               ))}
 
-              <div className="bg-indigo-50 p-4 rounded-lg flex flex-col gap-2 border border-indigo-100">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-indigo-900">Total Score:</span>
-                  <span className="font-bold text-indigo-700 text-xl">
-                    {Object.values(marksData).reduce((sum, val) => sum + (Number(val) || 0), 0)} / 40
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-indigo-200/50">
-                  <span className="font-bold text-indigo-900">Final Average (Out of 10):</span>
-                  <span className="font-bold text-indigo-700 text-xl">
-                    {(Object.values(marksData).reduce((sum, val) => sum + (Number(val) || 0), 0) / 4).toFixed(1)} / 10
-                  </span>
-                </div>
-              </div>
+
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
                 <button type="button" onClick={() => setSelectedTask(null)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Cancel</button>
