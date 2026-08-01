@@ -265,13 +265,16 @@ const syncGradeToMoodle = async (moodleId, assignmentId, grade, feedback) => {
       grade: grade,
       attemptnumber: -1,
       addattempt: 0,
-      workflowstate: 'graded',
       applytoall: 1,
       'plugindata[assignfeedbackcomments_editor][text]': feedback,
       'plugindata[assignfeedbackcomments_editor][format]': 1
     });
 
-    await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, gradeParams.toString());
+    const gradeRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, gradeParams.toString());
+    
+    if (gradeRes.data && gradeRes.data.exception) {
+      throw new Error(gradeRes.data.message || gradeRes.data.exception);
+    }
     console.log(`[MoodleSync] Synced grade for ${moodleId} to assignment ${assignmentId}`);
     return true;
   } catch (error) {
