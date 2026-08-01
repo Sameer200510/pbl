@@ -36,7 +36,8 @@ const {
   getReevaluations,
   adminUpdateMarks,
   getAllStudents,
-  bulkDeleteTeams
+  bulkDeleteTeams,
+  bulkUploadTeams
 } = require('../controllers/adminController');
 const { getInteractions } = require('../controllers/facultyController');
 const { protect, authorize } = require('../middlewares/auth');
@@ -73,6 +74,7 @@ router.route('/pbl')
   .get(getPbls);
 
 router.post('/pbl/:pblId/auto-form-teams', autoFormTeams);
+router.post('/pbl/:pblId/teams/bulk', uploadExcel.single('file'), bulkUploadTeams);
 
 router.route('/pbl/:id')
   .put(updatePbl)

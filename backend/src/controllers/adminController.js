@@ -1367,6 +1367,173 @@ const bulkDeleteTeams = async (req, res, next) => {
   }
 };
 
+// @desc    Bulk Upload Teams from Excel
+// @route   POST /api/admin/pbl/:pblId/teams/bulk
+// @access  Private/Admin
+const bulkUploadTeams = async (req, res, next) => {
+  try {
+    const pblId = req.params.pblId;
+    if (!req.file) {
+      res.status(400);
+      throw new Error('Please upload an Excel file');
+    }
+
+    const pbl = await prisma.pbl.findUnique({ where: { id: pblId } });
+    if (!pbl) {
+      res.status(404);
+      throw new Error('PBL Subject not found');
+    }
+
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(sheet);
+
+    let addedTeamsCount = 0;
+    let skippedRows = [];
+
+    // Helper to get or create student
+    const getOrCreateStudent = async (rollNo, email, name, section, semester) => {
+      if (!rollNo) return null;
+      rollNo = String(rollNo).trim();
+      email = email ? String(email).trim() : `${rollNo}@geu.ac.in`;
+      name = name ? String(name).trim() : rollNo;
+      section = section ? String(section).toUpperCase().trim() : 'A';
+      semester = semester ? parseInt(semester) : pbl.semester;
+
+      let user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email },
+            { studentProfile: { enrollmentNumber: rollNo } }
+          ]
+        },
+        include: { studentProfile: true }
+      });
+
+      if (!user) {
+        const passwordHash = await bcrypt.hash('Moodle@123', 10);
+        user = await prisma.user.create({
+          data: {
+            name,
+            email,
+            passwordHash,
+            role: 'STUDENT',
+            requiresPasswordChange: true,
+            studentProfile: {
+              create: {
+                enrollmentNumber: rollNo,
+                moodleId: rollNo,
+                section,
+                semester
+              }
+            }
+          },
+          include: { studentProfile: true }
+        });
+      } else if (!user.studentProfile) {
+        return null;
+      }
+      return user.studentProfile;
+    };
+
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowNumber = i + 2; // +1 for 0-index, +1 for header
+
+      const leaderRollNo = row['Team Lead University Roll Number'] || row['Team Lead Student ID'];
+      const leaderName = row['Team Lead Name'];
+      const leaderEmail = row['Team Lead Email ID'];
+      const leaderSection = row['Section of Team Lead'];
+      const semester = row['Semester'];
+
+      if (!leaderRollNo) {
+        skippedRows.push(`Row ${rowNumber}: Missing Team Leader Roll Number`);
+        continue;
+      }
+
+      const rawMembers = [
+        { rollNo: leaderRollNo, name: leaderName, email: leaderEmail, section: leaderSection }
+      ];
+
+      for (let m = 1; m <= 4; m++) {
+        const mRollNo = row[`University Roll Number Member ${m}`] || row[`Student ID Member ${m}`] || row[`StudentID of Member ${m}`];
+        const mName = row[`Name of Member ${m}`];
+        const mEmail = row[`Email ID Member ${m}`];
+        const mSection = row[`Section of Member ${m}`];
+
+        if (mRollNo) {
+          rawMembers.push({ rollNo: mRollNo, name: mName, email: mEmail, section: mSection });
+        }
+      }
+
+      // 1. Process sections to remove duplicate sections within the team
+      const seenSections = new Set();
+      const validMembers = [];
+
+      for (const m of rawMembers) {
+        const sec = m.section ? String(m.section).toUpperCase().trim() : 'A';
+        if (!seenSections.has(sec)) {
+          seenSections.add(sec);
+          validMembers.push(m);
+        }
+      }
+
+      // 2. Fetch or create student profiles for valid members
+      const processedMembers = [];
+
+      for (const m of validMembers) {
+        const studentProfile = await getOrCreateStudent(m.rollNo, m.email, m.name, m.section, semester);
+        if (!studentProfile) continue;
+
+        // Ensure student is not already in a team for this PBL
+        const existingTeamMember = await prisma.teamMember.findFirst({
+          where: { studentId: studentProfile.id, team: { pblId: pbl.id } }
+        });
+
+        if (!existingTeamMember) {
+          processedMembers.push(studentProfile);
+        }
+      }
+
+      if (processedMembers.length === 0) {
+        skippedRows.push(`Row ${rowNumber}: All members were either invalid or already in a team for this subject.`);
+        continue;
+      }
+
+      // 3. Create Team
+      const leaderStudentId = processedMembers[0].id;
+      
+      const newTeam = await prisma.team.create({
+        data: {
+          pblId: pbl.id,
+          leaderId: leaderStudentId
+        }
+      });
+
+      // 4. Add members
+      const teamMembersData = processedMembers.map(sp => ({
+        teamId: newTeam.id,
+        studentId: sp.id
+      }));
+
+      await prisma.teamMember.createMany({
+        data: teamMembersData
+      });
+
+      addedTeamsCount++;
+    }
+
+    res.json({ 
+      message: `Successfully created ${addedTeamsCount} teams.`,
+      skipped: skippedRows
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Add Member to existing Team
 // @route   POST /api/admin/teams/:id/members
 // @access  Private/Admin

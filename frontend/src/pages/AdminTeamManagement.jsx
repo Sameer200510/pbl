@@ -237,11 +237,51 @@ const AdminTeamManagement = () => {
     }
   };
 
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
+
+  const handleFileUpload = (e) => {
+    setUploadFile(e.target.files[0]);
+  };
+
+  const submitBulkUpload = async () => {
+    if (!selectedPbl) return alert('Select a PBL first');
+    if (!uploadFile) return alert('Please select an Excel file');
+    
+    const data = new FormData();
+    data.append('file', uploadFile);
+
+    try {
+      setUploadLoading(true);
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      const res = await axios.post(`/api/admin/pbl/${selectedPbl}/teams/bulk`, data, {
+        headers: { 
+          Authorization: `Bearer ${userInfo.token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      let msg = res.data.message;
+      if (res.data.skipped && res.data.skipped.length > 0) {
+        msg += `\n\nSkipped Rows:\n${res.data.skipped.join('\n')}`;
+      }
+      alert(msg);
+      
+      setUploadFile(null);
+      document.getElementById('teamUploadInput').value = '';
+      fetchTeams();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 fade-in">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Team Management</h2>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 items-center">
           {selectedTeamIds.length > 0 && (
             <button 
               onClick={handleBulkDelete}
@@ -249,18 +289,38 @@ const AdminTeamManagement = () => {
               Delete Selected ({selectedTeamIds.length})
             </button>
           )}
+          
+          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
+            <input 
+              type="file" 
+              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+              onChange={handleFileUpload}
+              className="text-sm w-48 text-gray-700 dark:text-gray-300 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-700 dark:file:text-gray-300"
+              id="teamUploadInput"
+            />
+            <button 
+              onClick={submitBulkUpload}
+              disabled={!uploadFile || uploadLoading || !selectedPbl}
+              className={`px-3 py-1.5 text-sm font-medium text-white rounded-md transition-colors ${
+                !uploadFile || uploadLoading || !selectedPbl ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'
+              }`}
+            >
+              {uploadLoading ? 'Uploading...' : 'Upload Excel'}
+            </button>
+          </div>
+
           <button 
             onClick={handleAutoFormTeams}
             disabled={!selectedPbl || autoFormLoading}
             className={`px-4 py-2 text-white rounded-lg font-medium transition-colors ${
               !selectedPbl || autoFormLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
             }`}>
-            {autoFormLoading ? 'Running...' : '⚡ Auto-Form Remaining Teams'}
+            {autoFormLoading ? 'Running...' : '⚡ Auto-Form Teams'}
           </button>
           <button 
             onClick={() => setShowCreateModal(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-            + Create Team Manually
+            + Create Team
           </button>
         </div>
       </div>
