@@ -121,7 +121,11 @@ const AdminUserManagement = () => {
   };
 
   const handleBulkDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete ${selectedUserIds.length} selected user(s)?`)) return;
+    const confirmation = window.prompt(`Type 'DELETE' to confirm deletion of ${selectedUserIds.length} selected user(s):`);
+    if (confirmation !== 'DELETE' && confirmation !== 'delete') {
+      if (confirmation !== null) alert("Deletion cancelled. You must type 'DELETE' to confirm.");
+      return;
+    }
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/bulk-delete`, 
         { userIds: selectedUserIds },

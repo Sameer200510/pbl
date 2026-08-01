@@ -1339,6 +1339,33 @@ const deletePbl = async (req, res, next) => {
   }
 };
 
+// @desc    Bulk delete teams
+// @route   POST /api/admin/teams/bulk-delete
+// @access  Private/Admin
+const bulkDeleteTeams = async (req, res, next) => {
+  try {
+    const { teamIds } = req.body;
+    if (!teamIds || !Array.isArray(teamIds) || teamIds.length === 0) {
+      res.status(400);
+      throw new Error('Please provide an array of team IDs');
+    }
+
+    // Prisma doesn't cascade cleanly for some relations if not setup, 
+    // but assuming teamMembers delete cascades. If not, delete them first.
+    await prisma.teamMember.deleteMany({
+      where: { teamId: { in: teamIds } }
+    });
+
+    await prisma.team.deleteMany({
+      where: { id: { in: teamIds } }
+    });
+
+    res.json({ message: `${teamIds.length} teams deleted successfully.` });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Add Member to existing Team
 // @route   POST /api/admin/teams/:id/members
 // @access  Private/Admin
@@ -1765,5 +1792,8 @@ module.exports = {
   autoFormTeams,
   unlockForReevaluation,
   bulkReevaluation,
-  getReevaluations
+  getReevaluations,
+  adminUpdateMarks,
+  getAllStudents,
+  bulkDeleteTeams
 };

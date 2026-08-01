@@ -199,11 +199,56 @@ const AdminTeamManagement = () => {
     }
   };
 
+  const [selectedTeamIds, setSelectedTeamIds] = useState([]);
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedTeamIds(teams.map(t => t.id));
+    } else {
+      setSelectedTeamIds([]);
+    }
+  };
+
+  const handleSelectTeam = (id) => {
+    if (selectedTeamIds.includes(id)) {
+      setSelectedTeamIds(selectedTeamIds.filter(tid => tid !== id));
+    } else {
+      setSelectedTeamIds([...selectedTeamIds, id]);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const confirmation = window.prompt(`Type 'DELETE' to confirm deletion of ${selectedTeamIds.length} selected team(s):`);
+    if (confirmation !== 'DELETE' && confirmation !== 'delete') {
+      if (confirmation !== null) alert("Deletion cancelled. You must type 'DELETE' to confirm.");
+      return;
+    }
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      const res = await axios.post(`/api/admin/teams/bulk-delete`, 
+        { teamIds: selectedTeamIds },
+        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+      );
+      alert(res.data.message);
+      setSelectedTeamIds([]);
+      fetchTeams();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    }
+  };
+
   return (
     <div className="space-y-6 fade-in">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Team Management</h2>
         <div className="flex gap-3">
+          {selectedTeamIds.length > 0 && (
+            <button 
+              onClick={handleBulkDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+              Delete Selected ({selectedTeamIds.length})
+            </button>
+          )}
           <button 
             onClick={handleAutoFormTeams}
             disabled={!selectedPbl || autoFormLoading}
@@ -221,18 +266,32 @@ const AdminTeamManagement = () => {
       </div>
 
       <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select PBL</label>
-          <select 
-            value={selectedPbl} 
-            onChange={(e) => setSelectedPbl(e.target.value)}
-            className="w-full md:w-1/2 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="">-- Select a PBL to view teams --</option>
-            {pbls.map(p => (
-              <option key={p.id} value={p.id}>{p.subject} ({p.subjectShort} - Sem {p.semester})</option>
-            ))}
-          </select>
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-end">
+          <div className="flex-1 w-full md:w-auto">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select PBL</label>
+            <select 
+              value={selectedPbl} 
+              onChange={(e) => { setSelectedPbl(e.target.value); setSelectedTeamIds([]); }}
+              className="w-full md:w-1/2 px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="">-- Select a PBL to view teams --</option>
+              {pbls.map(p => (
+                <option key={p.id} value={p.id}>{p.subject} ({p.subjectShort} - Sem {p.semester})</option>
+              ))}
+            </select>
+          </div>
+          {teams.length > 0 && (
+            <div className="flex items-center gap-2 pb-2">
+              <input 
+                type="checkbox" 
+                id="selectAll"
+                checked={selectedTeamIds.length === teams.length}
+                onChange={handleSelectAll}
+                className="w-5 h-5 text-blue-600 rounded border-gray-300 cursor-pointer"
+              />
+              <label htmlFor="selectAll" className="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Select All Teams</label>
+            </div>
+          )}
         </div>
 
         {selectedPbl && (
@@ -246,8 +305,16 @@ const AdminTeamManagement = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {teams.map(team => (
-                  <div key={team.id} className="border border-gray-100 dark:border-gray-700 rounded-xl p-5 shadow-sm bg-gray-50 dark:bg-gray-900/50 hover:border-blue-300 transition-colors">
-                    <div className="flex justify-between items-start mb-4">
+                  <div key={team.id} className={`border ${selectedTeamIds.includes(team.id) ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'} rounded-xl p-5 shadow-sm hover:border-blue-300 transition-colors relative`}>
+                    <div className="absolute top-4 right-4">
+                      <input 
+                        type="checkbox"
+                        checked={selectedTeamIds.includes(team.id)}
+                        onChange={() => handleSelectTeam(team.id)}
+                        className="w-5 h-5 text-blue-600 rounded border-gray-300 cursor-pointer"
+                      />
+                    </div>
+                    <div className="flex justify-between items-start mb-4 pr-8">
                       <div>
                         <h4 className="text-lg font-bold text-primary">{team.teamIdFormatted}</h4>
                         <p className="text-xs text-gray-500 mt-1">Created: {new Date(team.createdAt).toLocaleDateString()}</p>

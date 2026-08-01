@@ -35,7 +35,8 @@ const {
   bulkReevaluation,
   getReevaluations,
   adminUpdateMarks,
-  getAllStudents
+  getAllStudents,
+  bulkDeleteTeams
 } = require('../controllers/adminController');
 const { getInteractions } = require('../controllers/facultyController');
 const { protect, authorize } = require('../middlewares/auth');
@@ -85,6 +86,8 @@ router.post('/pbl/:id/phase-config', updatePhaseConfig);
 
 router.route('/teams')
   .post(createTeamAdmin);
+
+router.post('/teams/bulk-delete', bulkDeleteTeams);
 
 router.route('/teams/:id')
   .put(updateTeam)
