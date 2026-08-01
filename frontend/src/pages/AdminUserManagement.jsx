@@ -47,13 +47,23 @@ const AdminUserManagement = () => {
   const [excelHeaders, setExcelHeaders] = useState([]);
   const [excelData, setExcelData] = useState([]);
   const [columnMapping, setColumnMapping] = useState({
-    username: '', email: '', role1: '', firstname: '', lastname: '', password: '', semester: '', section: '', rollno: '', course1: ''
+    username: '', email: '', role1: '', firstname: '', lastname: '', password: '', semester: '', section: '', rollno: '', 
+    course1: '', role2: '', course2: '', role3: '', course3: '', role4: '', course4: '', role5: '', course5: ''
   });
 
   const systemFields = [
     { key: 'username', label: 'Username (Moodle ID)', required: true },
     { key: 'email', label: 'Email', required: true },
-    { key: 'role1', label: 'Role (student/editingteacher)', required: true },
+    { key: 'role1', label: 'Role 1', required: true },
+    { key: 'course1', label: 'Course 1', required: false },
+    { key: 'role2', label: 'Role 2', required: false },
+    { key: 'course2', label: 'Course 2', required: false },
+    { key: 'role3', label: 'Role 3', required: false },
+    { key: 'course3', label: 'Course 3', required: false },
+    { key: 'role4', label: 'Role 4', required: false },
+    { key: 'course4', label: 'Course 4', required: false },
+    { key: 'role5', label: 'Role 5', required: false },
+    { key: 'course5', label: 'Course 5', required: false },
     { key: 'firstname', label: 'First Name', required: false },
     { key: 'lastname', label: 'Last Name', required: false },
     { key: 'password', label: 'Password', required: false },
