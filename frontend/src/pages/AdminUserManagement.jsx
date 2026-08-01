@@ -53,14 +53,13 @@ const AdminUserManagement = () => {
   const systemFields = [
     { key: 'username', label: 'Username (Moodle ID)', required: true },
     { key: 'email', label: 'Email', required: true },
-    { key: 'role1', label: 'Role (student/faculty)', required: true },
+    { key: 'role1', label: 'Role (student/editingteacher)', required: true },
     { key: 'firstname', label: 'First Name', required: false },
     { key: 'lastname', label: 'Last Name', required: false },
     { key: 'password', label: 'Password', required: false },
     { key: 'semester', label: 'Semester', required: false },
     { key: 'section', label: 'Section', required: false },
-    { key: 'rollno', label: 'University Roll No', required: false },
-    { key: 'course1', label: 'Course (for Faculty)', required: false },
+    { key: 'rollno', label: 'University Roll No', required: false }
   ];
 
   const handleFileUpload = (e) => {
@@ -105,9 +104,9 @@ const AdminUserManagement = () => {
       return alert('Username, Email, and Role fields are REQUIRED. Please map them to a column.');
     }
     
-    // Transform data based on mapping
+    // Transform data based on mapping, keeping all original fields
     const mappedData = excelData.map(row => {
-      let newRow = {};
+      let newRow = { ...row }; // KEEP ALL original Excel fields
       Object.keys(columnMapping).forEach(sysField => {
         const excelCol = columnMapping[sysField];
         if (excelCol && row[excelCol] !== undefined) {

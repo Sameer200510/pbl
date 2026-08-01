@@ -272,12 +272,19 @@ const bulkUploadUsersJson = async (req, res, next) => {
       const firstname = row['firstname'] ? String(row['firstname']).trim() : '';
       const lastname = row['lastname'] ? String(row['lastname']).trim() : '';
       const email = row['email'] ? String(row['email']).trim().toLowerCase() : '';
-      const course1 = row['course1'] ? String(row['course1']).trim() : '';
       const role1 = row['role1'] ? String(row['role1']).trim() : '';
       const rawPassword = row['password'] || 'Pbl@1234';
       const semester = parseInt(row['semester']) || 1;
       const section = row['section'] ? String(row['section']).toUpperCase().trim() : 'A';
       const rollno = row['rollno'] ? String(row['rollno']).trim() : username;
+
+      // Extract all course fields like course1, course2, etc.
+      const courses = [];
+      Object.keys(row).forEach(key => {
+        if (key.toLowerCase().startsWith('course') && row[key]) {
+          courses.push(String(row[key]).trim());
+        }
+      });
 
       if (!username || !email || !role1) continue;
 
@@ -320,9 +327,11 @@ const bulkUploadUsersJson = async (req, res, next) => {
           include: { facultyProfile: true }
         });
 
-        if (roleEnum === 'FACULTY' && course1) {
-          const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
-          if (pbl) await assignPblFacultyIds(pbl.id, newUser.facultyProfile.id);
+        if (roleEnum === 'FACULTY' && courses.length > 0) {
+          for (const c of courses) {
+            const pbl = await prisma.pbl.findFirst({ where: { subjectShort: c } });
+            if (pbl) await assignPblFacultyIds(pbl.id, newUser.facultyProfile.id);
+          }
         }
 
         addedCount++;
@@ -351,9 +360,11 @@ const bulkUploadUsersJson = async (req, res, next) => {
               data: { moodleId: username }
             });
           }
-          if (course1) {
-            const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
-            if (pbl) await assignPblFacultyIds(pbl.id, updatedUser.facultyProfile.id);
+          if (courses.length > 0) {
+            for (const c of courses) {
+              const pbl = await prisma.pbl.findFirst({ where: { subjectShort: c } });
+              if (pbl) await assignPblFacultyIds(pbl.id, updatedUser.facultyProfile.id);
+            }
           }
         }
         updatedCount++;
