@@ -48,9 +48,10 @@ const prisma = require('../config/db');
 // Apply protection and RBAC to all routes
 router.get('/moodle-test', async (req, res) => {
   try {
-    const settings = await prisma.systemSettings.findFirst();
-    const MOODLE_URL = settings.moodleUrl;
-    const MOODLE_API_TOKEN = settings.moodleApiToken;
+    const { getMoodleConfig } = require('../services/moodleService');
+    const config = await getMoodleConfig();
+    const MOODLE_URL = config.MOODLE_URL;
+    const MOODLE_API_TOKEN = config.MOODLE_API_TOKEN;
     const assignmentId = 28286;
     
     const userParams = new URLSearchParams({
