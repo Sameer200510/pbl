@@ -1514,7 +1514,10 @@ const autoFormTeams = async (req, res, next) => {
     }
 
     if (unassignedStudents.length === 0) {
-      return res.json({ message: 'No unassigned students found for this PBL.' });
+      let reason = pbl.moodleCourseId 
+        ? `Moodle course is linked, but no available students were found (check Moodle enrollment or API connection).`
+        : `System looked for students in Semester ${pbl.semester}, but found none available.`;
+      return res.status(400).json({ message: `No unassigned students found for this PBL. Reason: ${reason}` });
     }
 
     for (let i = unassignedStudents.length - 1; i > 0; i--) {
