@@ -262,17 +262,27 @@ const syncGradeToMoodle = async (moodleId, assignmentId, grade, feedback) => {
       moodlewsrestformat: 'json',
       assignmentid: assignmentId,
       userid: moodleUserId,
-      grade: grade,
-      attemptnumber: -1,
+      grade: parseFloat(grade).toFixed(2),
+      attemptnumber: -1, // Try -1 first
       addattempt: 0,
       'plugindata[assignfeedbackcomments_editor][text]': feedback,
       'plugindata[assignfeedbackcomments_editor][format]': 1
     });
 
-    const gradeRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, gradeParams.toString());
+    // If attemptnumber: -1 fails (which it often does for users with 0 submissions), fallback to attempt 0
+    let gradeRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, gradeParams.toString());
     
     if (gradeRes.data && gradeRes.data.exception) {
-      throw new Error(gradeRes.data.message || gradeRes.data.exception);
+      if (gradeRes.data.errorcode === 'invalidparameter') {
+        console.log(`[MoodleSync] attemptnumber -1 failed, trying attemptnumber 0...`);
+        gradeParams.set('attemptnumber', 0);
+        gradeRes = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, gradeParams.toString());
+        if (gradeRes.data && gradeRes.data.exception) {
+          throw new Error(gradeRes.data.message || gradeRes.data.exception);
+        }
+      } else {
+        throw new Error(gradeRes.data.message || gradeRes.data.exception);
+      }
     }
     console.log(`[MoodleSync] Synced grade for ${moodleId} to assignment ${assignmentId}`);
     return true;
