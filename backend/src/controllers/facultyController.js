@@ -115,10 +115,17 @@ const mentorGradeSubmission = async (req, res, next) => {
     if (phase?.moodleAssignmentId) {
       // Find the team leader's moodleId since they submitted it
       const studentProfile = await prisma.student.findUnique({ where: { id: submission.team.leaderId } });
-      if (studentProfile?.moodleId) {
+      const moodleIdToUse = studentProfile?.moodleId || studentProfile?.enrollmentNumber;
+      if (moodleIdToUse) {
         const { syncGradeToMoodle } = require('../services/moodleService');
-        const feedback = remarks || (grade === 1 ? 'Approved by Mentor' : 'Rejected by Mentor');
-        syncGradeToMoodle(studentProfile.moodleId, phase.moodleAssignmentId, grade, feedback).catch(err => {
+        let feedback = remarks || (grade === 1 ? 'Approved by Mentor' : 'Rejected by Mentor');
+        
+        // Append the file link to the feedback so it's accessible in Moodle
+        if (submission.synopsisUrl) {
+          feedback += `\n\nSubmitted File (PBL Portal): ${submission.synopsisUrl}`;
+        }
+
+        syncGradeToMoodle(moodleIdToUse, phase.moodleAssignmentId, grade, feedback).catch(err => {
           console.error('Non-blocking Moodle grade sync error:', err);
         });
       }

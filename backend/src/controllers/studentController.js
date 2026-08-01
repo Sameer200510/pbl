@@ -358,6 +358,9 @@ const submitPhase = async (req, res, next) => {
     res.status(201).json({ message: 'Submission successful', submission });
 
     // Background sync to Moodle if phase is linked to Moodle Assignment
+    // As per Option 1, we NO LONGER upload the file to Moodle. 
+    // The file stays on the PBL portal. We only sync the grade later.
+    /*
     if (phase.moodleAssignmentId) {
       const studentProfile = await prisma.student.findUnique({ where: { id: studentId } });
       const moodleIdToUse = studentProfile?.moodleId || studentProfile?.enrollmentNumber;
@@ -368,6 +371,7 @@ const submitPhase = async (req, res, next) => {
         });
       }
     }
+    */
 
   } catch (error) {
     next(error);
