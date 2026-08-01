@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Users, UserCheck, UserX, UsersRound, Activity, BarChart3, TrendingUp } from 'lucide-react';
+import { Users, UserCheck, UserX, UsersRound, BarChart3 } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 const AdminDashboard = () => {
   const [selectedPbl, setSelectedPbl] = useState('');
@@ -11,7 +12,8 @@ const AdminDashboard = () => {
     faculty: 0,
     activePbls: 0,
     studentsWithTeam: 0,
-    studentsWithoutTeam: 0
+    studentsWithoutTeam: 0,
+    graphData: []
   });
 
   useEffect(() => {
@@ -103,34 +105,28 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Phase Progress Chart Placeholder */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-white to-gray-50 dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="mt-6">
+        {/* Phase Progress Chart */}
+        <div className="bg-gradient-to-br from-white to-gray-50 dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-              <BarChart3 className="text-indigo-500" size={20} /> Phase Progress Overview
+              <BarChart3 className="text-indigo-500" size={20} /> PBL Phase Progress Overview
             </h3>
           </div>
-          <div className="h-64 flex flex-col items-center justify-center bg-gray-100/50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
-            <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mb-3 border border-gray-100 dark:border-gray-700 text-indigo-500">
-              <TrendingUp size={32} />
-            </div>
-            <p className="text-gray-500 dark:text-gray-400 font-medium">Chart visualization module coming soon</p>
-            <p className="text-xs text-gray-400 mt-1">Detailed phase progression will be plotted here</p>
-          </div>
-        </div>
-
-        {/* Recent Activities */}
-        <div className="bg-gradient-to-br from-white to-gray-50 dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
-            <Activity className="text-green-500" size={20} /> Recent Activities
-          </h3>
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-500 bg-gray-100/50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-6">
-            <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-full shadow-sm flex items-center justify-center mb-3 border border-gray-100 dark:border-gray-700 text-gray-400">
-              <Activity size={20} />
-            </div>
-            <p className="font-medium text-sm">No recent activities found</p>
-            <p className="text-xs text-gray-400 mt-1 text-center">System logs and activities will appear here.</p>
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={statsData.graphData || []} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 600 }} />
+                <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 600 }} />
+                <Tooltip 
+                  cursor={{ fill: '#F3F4F6' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                  labelStyle={{ fontWeight: 'bold', color: '#374151' }}
+                />
+                <Bar dataKey="value" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={50} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

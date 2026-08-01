@@ -697,13 +697,36 @@ const getDashboardStats = async (req, res, next) => {
       where: { isArchived: false }
     });
 
+    const teamsWithMentor = await prisma.team.count({
+      where: pblId ? { pblId, mentorId: { not: null } } : { mentorId: { not: null } }
+    });
+
+    const phase1Complete = await prisma.submission.count({
+      where: pblId ? { team: { pblId }, phase: { phaseNumber: 1 }, status: 'GRADED' } : { phase: { phaseNumber: 1 }, status: 'GRADED' }
+    });
+
+    const phase2Complete = await prisma.submission.count({
+      where: pblId ? { team: { pblId }, phase: { phaseNumber: 2 }, status: 'GRADED' } : { phase: { phaseNumber: 2 }, status: 'GRADED' }
+    });
+
+    const phase3Complete = await prisma.submission.count({
+      where: pblId ? { team: { pblId }, phase: { phaseNumber: 3 }, status: 'GRADED' } : { phase: { phaseNumber: 3 }, status: 'GRADED' }
+    });
+
     res.json({
       students: studentCount,
       teams: teamCount,
       faculty: facultyCount,
       activePbls: activePblsCount,
       studentsWithTeam: studentsWithTeamCount,
-      studentsWithoutTeam
+      studentsWithoutTeam,
+      graphData: [
+        { name: 'Step 1: Teams', value: teamCount },
+        { name: 'Step 2: Mentors', value: teamsWithMentor },
+        { name: 'Step 3: Phase 1', value: phase1Complete },
+        { name: 'Step 4: Phase 2', value: phase2Complete },
+        { name: 'Step 5: Phase 3', value: phase3Complete }
+      ]
     });
   } catch (error) {
     next(error);
