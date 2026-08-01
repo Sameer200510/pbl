@@ -6,6 +6,14 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 const AdminDashboard = () => {
   const [selectedPbl, setSelectedPbl] = useState('');
   const [pblList, setPblList] = useState([]);
+  const defaultGraphData = [
+    { name: 'Step 1: Teams', value: 0 },
+    { name: 'Step 2: Mentors', value: 0 },
+    { name: 'Step 3: Phase 1', value: 0 },
+    { name: 'Step 4: Phase 2', value: 0 },
+    { name: 'Step 5: Phase 3', value: 0 }
+  ];
+
   const [statsData, setStatsData] = useState({
     students: 0,
     teams: 0,
@@ -13,7 +21,7 @@ const AdminDashboard = () => {
     activePbls: 0,
     studentsWithTeam: 0,
     studentsWithoutTeam: 0,
-    graphData: []
+    graphData: defaultGraphData
   });
 
   useEffect(() => {
@@ -41,7 +49,10 @@ const AdminDashboard = () => {
         const res = await axios.get(url, {
           headers: { Authorization: `Bearer ${userInfo.token}` }
         });
-        setStatsData(res.data);
+        setStatsData({
+          ...res.data,
+          graphData: res.data.graphData?.length ? res.data.graphData : defaultGraphData
+        });
       } catch (err) {
         console.error('Failed to fetch stats', err);
       }
