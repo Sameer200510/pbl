@@ -42,8 +42,86 @@ const {
 const { getInteractions } = require('../controllers/facultyController');
 const { protect, authorize } = require('../middlewares/auth');
 const { uploadExcel } = require('../middlewares/upload');
+const axios = require('axios');
+const prisma = require('../config/db');
 
 // Apply protection and RBAC to all routes
+router.get('/moodle-test', async (req, res) => {
+  try {
+    const settings = await prisma.systemSettings.findFirst();
+    const MOODLE_URL = settings.moodleUrl;
+    const MOODLE_API_TOKEN = settings.moodleApiToken;
+    const assignmentId = 28286;
+    
+    const userParams = new URLSearchParams({
+      wstoken: MOODLE_API_TOKEN,
+      wsfunction: 'core_user_get_users_by_field',
+      moodlewsrestformat: 'json',
+      field: 'username',
+      'values[0]': 'stest36'
+    });
+    
+    const userRes = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, userParams.toString());
+    const moodleUserId = userRes.data[0]?.id;
+    
+    const results = {};
+    
+    // Test 1: Just grade, attemptnumber 0, no addattempt, no plugindata
+    try {
+      const p1 = new URLSearchParams({
+        wstoken: MOODLE_API_TOKEN,
+        wsfunction: 'mod_assign_save_grade',
+        moodlewsrestformat: 'json',
+        assignmentid: assignmentId,
+        userid: moodleUserId,
+        grade: 1.0,
+        attemptnumber: 0
+      });
+      const r1 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p1.toString());
+      results.test1 = r1.data;
+    } catch(e) { results.test1 = e.message; }
+
+    // Test 2: grade, attemptnumber -1, addattempt 0
+    try {
+      const p2 = new URLSearchParams({
+        wstoken: MOODLE_API_TOKEN,
+        wsfunction: 'mod_assign_save_grade',
+        moodlewsrestformat: 'json',
+        assignmentid: assignmentId,
+        userid: moodleUserId,
+        grade: 1.0,
+        attemptnumber: -1,
+        addattempt: 0
+      });
+      const r2 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p2.toString());
+      results.test2 = r2.data;
+    } catch(e) { results.test2 = e.message; }
+
+    // Test 3: with plugindata and attempt 0
+    try {
+      const p3 = new URLSearchParams({
+        wstoken: MOODLE_API_TOKEN,
+        wsfunction: 'mod_assign_save_grade',
+        moodlewsrestformat: 'json',
+        assignmentid: assignmentId,
+        userid: moodleUserId,
+        grade: 1.0,
+        attemptnumber: 0,
+        addattempt: 0,
+        'plugindata[assignfeedbackcomments_editor][text]': 'Test feedback link',
+        'plugindata[assignfeedbackcomments_editor][format]': 1
+      });
+      const r3 = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, p3.toString());
+      results.test3 = r3.data;
+    } catch(e) { results.test3 = e.message; }
+
+    res.json(results);
+  } catch(error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Apply protection and RBAC to all other routes
 router.use(protect);
 router.use(authorize('ADMIN', 'SUPER_ADMIN'));
 
