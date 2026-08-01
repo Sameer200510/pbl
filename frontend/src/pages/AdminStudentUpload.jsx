@@ -170,7 +170,7 @@ const AdminStudentUpload = () => {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
         <div className="mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
           <h3 className="text-lg font-bold text-gray-800 dark:text-white">Upload Excel (.xlsx, .csv)</h3>
           <p className="text-sm text-gray-500 mt-1">
@@ -191,7 +191,7 @@ const AdminStudentUpload = () => {
           </div>
         )}
 
-        <div className="mb-6 p-5 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="mb-6 p-5 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Target Semester for these Students</label>
             <select
@@ -222,7 +222,7 @@ const AdminStudentUpload = () => {
               type="file" 
               accept=".xlsx, .xls, .csv" 
               onChange={handleFileUpload}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer dark:file:bg-gray-700 dark:file:text-gray-300"
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer dark:file:bg-gray-700 dark:file:text-gray-300"
             />
           </div>
         </div>
@@ -258,7 +258,7 @@ const AdminStudentUpload = () => {
             </div>
           </form>
         ) : !excelData ? (
-          <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded p-12 text-center bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer relative mt-4">
+          <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-12 text-center bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer relative mt-4">
             <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
             <div className="flex flex-col items-center pointer-events-none">
               <span className="text-5xl mb-4">📄</span>
@@ -268,14 +268,14 @@ const AdminStudentUpload = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded text-sm font-medium border border-blue-100 dark:border-blue-800 flex justify-between items-center">
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-xl text-sm font-medium border border-blue-100 dark:border-blue-800 flex justify-between items-center">
               <span>✅ File loaded successfully! Found {excelData.length} rows. Please map your columns below.</span>
               <button onClick={() => setExcelData(null)} className="px-3 py-1 bg-white dark:bg-gray-800 shadow-sm rounded text-gray-600 text-xs font-bold hover:bg-gray-50 border">Cancel / Upload Different File</button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {['name', 'email', 'rollNo', 'section', 'moodleId', 'password'].map((field) => (
-                <div key={field} className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded border border-gray-100 dark:border-gray-700">
+                <div key={field} className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
                   <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 capitalize">
                     {field.replace(/([A-Z])/g, ' $1').trim()} Column 
                     {['name', 'rollNo', 'section'].includes(field) && <span className="text-red-500 ml-1">*</span>}
@@ -296,7 +296,7 @@ const AdminStudentUpload = () => {
               <button 
                 onClick={submitMappedData}
                 disabled={uploadLoading}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold transition-colors shadow-lg shadow-blue-600/30 disabled:opacity-70 flex items-center mb-2"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-blue-600/30 disabled:opacity-70 flex items-center mb-2"
               >
                 {uploadLoading ? `Uploading... ${uploadProgress}%` : `Confirm & Upload ${excelData.length} Students`}
               </button>
@@ -314,14 +314,14 @@ const AdminStudentUpload = () => {
       </div>
 
       {skippedStudents.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-6 shadow-sm">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 shadow-sm">
           <h3 className="text-lg font-bold text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
             ⚠️ Skipped Students ({skippedStudents.length})
           </h3>
           <p className="text-sm text-red-600 dark:text-red-300 mb-4">
             These students were skipped because their rows were missing mandatory fields (Name, Roll No, or Section).
           </p>
-          <div className="max-h-60 overflow-y-auto bg-white dark:bg-gray-900 rounded border border-red-100 dark:border-red-800">
+          <div className="max-h-60 overflow-y-auto bg-white dark:bg-gray-900 rounded-xl border border-red-100 dark:border-red-800">
             <table className="w-full text-left border-collapse text-sm">
               <thead className="bg-red-50/50 dark:bg-red-900/50 sticky top-0">
                 <tr>
@@ -345,7 +345,7 @@ const AdminStudentUpload = () => {
       )}
 
       {/* Student Directory Section */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 p-6 mt-8">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mt-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-gray-100 dark:border-gray-700 pb-4">
           <h3 className="text-xl font-bold text-gray-800 dark:text-white">Student Directory ({allStudents.length})</h3>
           
@@ -368,7 +368,7 @@ const AdminStudentUpload = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded border border-gray-100 dark:border-gray-700">
+        <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-sm">
               <tr>

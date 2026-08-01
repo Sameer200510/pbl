@@ -325,7 +325,7 @@ const AdminTeamManagement = () => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
         <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-end">
           <div className="flex-1 w-full md:w-auto">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Select PBL</label>
@@ -358,14 +358,14 @@ const AdminTeamManagement = () => {
           loading ? (
             <div className="text-center p-8 text-gray-500">Loading teams...</div>
           ) : teams.length === 0 ? (
-            <div className="text-center p-8 bg-gray-50 dark:bg-gray-900/50 rounded text-gray-500 border border-dashed border-gray-200">
+            <div className="text-center p-8 bg-gray-50 dark:bg-gray-900/50 rounded-xl text-gray-500 border border-dashed border-gray-200">
               No teams formed yet for this PBL.
             </div>
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {teams.map(team => (
-                  <div key={team.id} className={`border ${selectedTeamIds.includes(team.id) ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'} rounded p-5 shadow-sm hover:border-blue-300 transition-colors relative`}>
+                  <div key={team.id} className={`border ${selectedTeamIds.includes(team.id) ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'} rounded-xl p-5 shadow-sm hover:border-blue-300 transition-colors relative`}>
                     <div className="absolute top-4 right-4">
                       <input 
                         type="checkbox"
@@ -433,7 +433,7 @@ const AdminTeamManagement = () => {
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
               <h3 className="text-xl font-bold text-gray-800 dark:text-white">Create Team Manually</h3>
               <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl font-bold">&times;</button>
@@ -532,7 +532,7 @@ const AdminTeamManagement = () => {
       {/* Add Member Modal */}
       {showAddMemberModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded w-full max-w-md overflow-hidden shadow-2xl">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
             <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
               <h3 className="text-xl font-bold text-gray-800 dark:text-white">Add Team Member</h3>
               <button onClick={() => setShowAddMemberModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl font-bold">&times;</button>
@@ -570,8 +570,8 @@ const AdminTeamManagement = () => {
 
       {/* Interactions Modal */}
       {showInteractions && (
-        <div className="fixed inset-0 bg-black/60  flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded p-6 shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 <span className="text-orange-500">📝</span> Team Interactions: {interactionTeam?.teamIdFormatted}
@@ -582,13 +582,13 @@ const AdminTeamManagement = () => {
             {interactionLoading ? (
               <p className="text-center text-gray-500 p-8">Loading interactions...</p>
             ) : interactions.length === 0 ? (
-              <div className="text-center p-8 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700">
+              <div className="text-center p-8 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700">
                 <p className="text-gray-500 italic">No mentor interactions logged for this team yet.</p>
               </div>
             ) : (
               <div className="space-y-6">
                 {interactions.map(int => (
-                  <div key={int.id} className="p-5 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600 relative">
+                  <div key={int.id} className="p-5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 relative">
                     <div className="absolute top-0 right-0 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl">
                       Visit #{int.visitNumber}
                     </div>

@@ -55,7 +55,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6 fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard Overview</h2>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
@@ -73,7 +73,7 @@ const AdminDashboard = () => {
               <select
                 value={selectedPbl}
                 onChange={(e) => setSelectedPbl(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer max-w-[200px]"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer max-w-[200px]"
               >
                 <option value="">All Subjects</option>
                 {pblList.map(p => (
@@ -88,13 +88,13 @@ const AdminDashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white dark:bg-gray-800 rounded p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+          <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.title}</p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stat.value}</p>
               </div>
-              <div className={`w-12 h-12 rounded flex items-center justify-center text-2xl ${stat.color}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${stat.color}`}>
                 {stat.icon}
               </div>
             </div>
@@ -104,15 +104,15 @@ const AdminDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Phase Progress Chart Placeholder */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Phase Progress Overview</h3>
-          <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded border border-dashed border-gray-200 dark:border-gray-700">
+          <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
             <p className="text-gray-500 dark:text-gray-400">Chart Visualization (e.g. Recharts) goes here</p>
           </div>
         </div>
 
         {/* Recent Activities */}
-        <div className="bg-white dark:bg-gray-800 rounded p-6 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Recent Activities</h3>
           <div className="flex-1 flex items-center justify-center text-gray-500">
             <p>No recent activities</p>

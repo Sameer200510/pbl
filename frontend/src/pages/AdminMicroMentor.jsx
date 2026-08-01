@@ -95,7 +95,7 @@ const AdminMicroMentor = () => {
 
   return (
     <div className="space-y-6 fade-in">
-      <div className="bg-white p-6 rounded shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 justify-between items-center">
         <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Select PBL</label>
@@ -129,14 +129,14 @@ const AdminMicroMentor = () => {
           <button
             onClick={handleAssignMicroMentors}
             disabled={assigning || !selectedPhase}
-            className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"
+            className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"
           >
             {assigning ? 'Assigning...' : '🎲 Assign Micro Mentors Randomly'}
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
           <h3 className="text-lg font-bold text-[#1c1f58]">Peer Review Assignments (Phase {phases.find(p=>p.id === selectedPhase)?.phaseNumber})</h3>
           <span className="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full">

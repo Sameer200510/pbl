@@ -160,13 +160,13 @@ const AdminReevaluation = () => {
   return (
     <div className="space-y-6 fade-in">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Re-evaluation / Back</h2>
         <p className="text-sm text-gray-500 mt-1">Upload an Excel file of students who need re-evaluation and assign them to a faculty evaluator.</p>
       </div>
 
       {/* Step 1: Select PBL */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="flex flex-col md:flex-row gap-4">
           {/* PBL Select */}
           <div className="flex-1">
@@ -174,7 +174,7 @@ const AdminReevaluation = () => {
             <select
               value={selectedPblId}
               onChange={(e) => { setSelectedPblId(e.target.value); setSelectedPhaseId(''); setResult(null); }}
-              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
             >
               <option value="">-- Choose PBL --</option>
               {pblList.map(p => (
@@ -190,7 +190,7 @@ const AdminReevaluation = () => {
               value={selectedPhaseId}
               onChange={(e) => { setSelectedPhaseId(e.target.value); setResult(null); }}
               disabled={!selectedPblId}
-              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer disabled:opacity-50"
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer disabled:opacity-50"
             >
               <option value="">-- Choose Phase --</option>
               {phases.map(ph => (
@@ -206,7 +206,7 @@ const AdminReevaluation = () => {
               value={selectedEvaluatorId}
               onChange={(e) => setSelectedEvaluatorId(e.target.value)}
               disabled={!selectedPhaseId}
-              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer disabled:opacity-50"
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer disabled:opacity-50"
             >
               <option value="">-- Choose Evaluator --</option>
               {facultyList.map(f => (
@@ -219,7 +219,7 @@ const AdminReevaluation = () => {
 
       {/* Step 2: Upload Excel & Submit */}
       {selectedPhaseId && (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
           <form onSubmit={handleUpload} className="flex flex-col md:flex-row items-end gap-4">
             <div className="flex-1">
               <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">④ Upload Excel (Enrollment Numbers)</label>
@@ -234,7 +234,7 @@ const AdminReevaluation = () => {
             <button
               type="submit"
               disabled={uploading || !file || !selectedEvaluatorId}
-              className="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded font-bold text-sm shadow disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+              className="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm shadow disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
             >
               {uploading ? 'Processing...' : '🔄 Assign Re-evaluation'}
             </button>
@@ -242,7 +242,7 @@ const AdminReevaluation = () => {
 
           {/* Result */}
           {result && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
+            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
               <p className="text-sm font-bold text-green-700 dark:text-green-400">{result.message}</p>
               <div className="flex gap-6 mt-2 text-sm text-green-600">
                 <span>✅ New: {result.created}</span>
@@ -262,7 +262,7 @@ const AdminReevaluation = () => {
 
       {/* Absentees Section */}
       {selectedPhaseId && absentees.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded shadow-sm border border-red-100 dark:border-red-900/30">
+        <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30">
           <h3 className="text-lg font-bold text-red-800 dark:text-red-400 mb-4 flex items-center gap-2">
             ⚠️ Absent Students ({absentees.length})
           </h3>
@@ -271,7 +271,7 @@ const AdminReevaluation = () => {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {absentees.map(a => (
-              <div key={a.studentId} className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded border border-red-100 dark:border-red-900/50 shadow-sm">
+              <div key={a.studentId} className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-xl border border-red-100 dark:border-red-900/50 shadow-sm">
                 <div>
                   <p className="font-bold text-gray-800 dark:text-white text-sm">{a.studentName}</p>
                   <p className="text-xs text-gray-500">{a.enrollmentNumber}</p>
@@ -291,7 +291,7 @@ const AdminReevaluation = () => {
 
       {/* Existing Re-evaluations Table */}
       {selectedPhaseId && (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">
             Assigned Re-evaluations ({reevalList.length})
           </h3>

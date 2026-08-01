@@ -248,7 +248,7 @@ const AdminFacultyAllocation = () => {
         )}
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded border border-gray-100 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
         <h3 className="text-lg font-bold mb-4 text-gray-800 dark:text-white">Team Allocations</h3>
         
         <div className="mb-6">
@@ -269,12 +269,12 @@ const AdminFacultyAllocation = () => {
           loading ? (
             <div className="text-center p-8 text-gray-500">Loading teams...</div>
           ) : teams.length === 0 ? (
-            <div className="text-center p-8 bg-gray-50 dark:bg-gray-900/50 rounded text-gray-500 border border-dashed border-gray-200">
+            <div className="text-center p-8 bg-gray-50 dark:bg-gray-900/50 rounded-xl text-gray-500 border border-dashed border-gray-200">
               No teams formed yet for this PBL.
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex flex-col mb-4 gap-4 bg-gray-50 dark:bg-gray-900/50 p-4 rounded border border-gray-100 dark:border-gray-700">
+              <div className="flex flex-col mb-4 gap-4 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex gap-2 items-center">
                     <button onClick={handleRandomMapMentors} className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg shadow-sm font-medium text-sm">
@@ -361,7 +361,7 @@ const AdminFacultyAllocation = () => {
 
       {showUploadModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
             <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
               <h3 className="text-xl font-bold text-gray-800 dark:text-white">Upload Faculty Excel</h3>
               <button onClick={() => {setShowUploadModal(false); setExcelData(null);}} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl font-bold">&times;</button>
@@ -376,7 +376,7 @@ const AdminFacultyAllocation = () => {
 
               {!excelData ? (
                 <>
-                <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <div className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} className="hidden" id="excel-upload" />
                   <label htmlFor="excel-upload" className="cursor-pointer flex flex-col items-center">
                     <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
@@ -412,14 +412,14 @@ const AdminFacultyAllocation = () => {
                         {fileColumns.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded border border-gray-100 dark:border-gray-600">
+                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Moodle ID Column</label>
                       <select value={mapping.moodleId} onChange={(e) => setMapping({...mapping, moodleId: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         <option value="">-- Select Column --</option>
                         {fileColumns.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded border border-gray-100 dark:border-gray-600">
+                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Password Column</label>
                       <select value={mapping.password} onChange={(e) => setMapping({...mapping, password: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         <option value="">-- Select Column --</option>
