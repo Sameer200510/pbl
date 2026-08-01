@@ -143,6 +143,43 @@ router.get('/moodle-test', async (req, res) => {
       results.test7 = r7.data;
     } catch(e) { results.test7 = e.message; }
 
+    // Resolve CMID to Instance ID
+    try {
+      const pResolve = new URLSearchParams({
+        wstoken: MOODLE_API_TOKEN,
+        wsfunction: 'core_course_get_course_module',
+        moodlewsrestformat: 'json',
+        cmid: assignmentId
+      });
+      const rResolve = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, pResolve.toString());
+      results.resolve_cmid = rResolve.data;
+    } catch(e) { results.resolve_cmid = e.message; }
+    
+    // Also try mod_assign_get_assignments
+    try {
+      const pAssigns = new URLSearchParams({
+        wstoken: MOODLE_API_TOKEN,
+        wsfunction: 'mod_assign_get_assignments',
+        moodlewsrestformat: 'json'
+      });
+      const rAssigns = await axios.post(`${MOODLE_URL}/webservice/rest/server.php`, pAssigns.toString());
+      
+      // Look for the one with cmid = 28286
+      if (rAssigns.data && rAssigns.data.courses) {
+        let found = null;
+        for (const c of rAssigns.data.courses) {
+          for (const a of c.assignments) {
+            if (a.cmid == assignmentId) {
+              found = a;
+            }
+          }
+        }
+        results.resolve_mod_assign = found ? found : 'Not found in mod_assign_get_assignments';
+      } else {
+        results.resolve_mod_assign = rAssigns.data;
+      }
+    } catch(e) { results.resolve_mod_assign = e.message; }
+
     res.json(results);
   } catch(error) {
     res.status(500).json({ error: error.message });
