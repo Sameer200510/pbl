@@ -31,9 +31,9 @@ const DeveloperInfo = () => {
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onClick={() => setIsOpen(true)}
-          className="w-12 h-12 bg-gradient-to-tr from-[#131540] to-[#292d7c] text-[#fbc02d] rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 border-2 border-[#fbc02d]/20"
+          className="w-6 h-6 rounded-full flex items-center justify-center text-gray-300 bg-transparent opacity-10 hover:opacity-100 hover:bg-gray-100/50 transition-all duration-300"
         >
-          <Info size={24} strokeWidth={2.5} />
+          <Info size={16} strokeWidth={2} />
         </button>
       </div>
 
