@@ -52,7 +52,7 @@ router.get('/moodle-test', async (req, res) => {
     const config = await getMoodleConfig();
     const MOODLE_URL = config.MOODLE_URL;
     const MOODLE_API_TOKEN = config.MOODLE_API_TOKEN;
-    const assignmentId = 28286;
+    const assignmentId = 12136; // Using the resolved true Assignment Instance ID
     
     const userParams = new URLSearchParams({
       wstoken: MOODLE_API_TOKEN,
