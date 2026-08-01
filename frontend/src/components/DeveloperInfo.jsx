@@ -79,7 +79,7 @@ const DeveloperInfo = () => {
               </div>
               
               <h3 className="text-2xl font-black text-gray-900 tracking-tight leading-tight mb-2">
-                SAMEER LOHANI
+                Sameer Lohani
                 <span className="block text-xl text-gray-400 font-bold my-1">&amp;</span>
                 Varun Dobhal
               </h3>
