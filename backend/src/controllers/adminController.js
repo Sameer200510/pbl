@@ -1471,11 +1471,11 @@ const autoFormTeams = async (req, res, next) => {
       }
     }
 
-    // Fallback: If Moodle is not used or API fails, just grab ALL unassigned students in the database 
-    // to allow for easy testing (ignoring semester strictness).
+    // Fallback: If Moodle is not used or API fails, grab unassigned students based on the PBL's semester.
     if (unassignedStudents.length === 0) {
       unassignedStudents = await prisma.student.findMany({
         where: {
+          semester: pbl.semester,
           teamMembers: {
             none: {
               team: { pblId }
