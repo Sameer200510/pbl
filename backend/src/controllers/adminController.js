@@ -1966,5 +1966,6 @@ module.exports = {
   getReevaluations,
   adminUpdateMarks,
   getAllStudents,
-  bulkDeleteTeams
+  bulkDeleteTeams,
+  bulkUploadTeams
 };
