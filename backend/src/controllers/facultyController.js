@@ -115,21 +115,30 @@ const mentorGradeSubmission = async (req, res, next) => {
     // Background Moodle Grade Sync for Mentor Approval
     const phase = await prisma.phase.findUnique({ where: { id: submission.phaseId } });
     if (phase?.moodleAssignmentId) {
-      // Find the team leader's moodleId since they submitted it
-      const studentProfile = await prisma.student.findUnique({ where: { id: submission.team.leaderId } });
-      const moodleIdToUse = studentProfile?.moodleId || studentProfile?.enrollmentNumber;
-      if (moodleIdToUse) {
-        const { syncGradeToMoodle } = require('../services/moodleService');
-        let feedback = remarks || (grade === 1 ? 'Approved by Mentor' : 'Rejected by Mentor');
-        
-        // Append the file link to the feedback so it's accessible in Moodle
-        if (submission.synopsisUrl) {
-          feedback += `\n\nSubmitted File (PBL Portal): ${submission.synopsisUrl}`;
-        }
+      // Find all team members to push grade to everyone
+      const teamMembers = await prisma.teamMember.findMany({
+        where: { teamId: submission.teamId },
+        include: { student: true }
+      });
 
-        syncGradeToMoodle(moodleIdToUse, phase.moodleAssignmentId, grade, feedback).catch(err => {
-          console.error('Non-blocking Moodle grade sync error:', err);
-        });
+      const { syncGradeToMoodle } = require('../services/moodleService');
+      
+      for (const member of teamMembers) {
+        const studentProfile = member.student;
+        const moodleIdToUse = studentProfile?.moodleId || studentProfile?.enrollmentNumber;
+        
+        if (moodleIdToUse) {
+          let feedback = remarks || (grade === 1 ? 'Approved by Mentor' : 'Rejected by Mentor');
+          
+          // Append the file link to the feedback so it's accessible in Moodle
+          if (submission.synopsisUrl) {
+            feedback += `\n\nSubmitted File (PBL Portal): ${submission.synopsisUrl}`;
+          }
+
+          syncGradeToMoodle(moodleIdToUse, phase.moodleAssignmentId, grade, feedback).catch(err => {
+            console.error(`Non-blocking Moodle grade sync error for ${moodleIdToUse}:`, err);
+          });
+        }
       }
     }
 
