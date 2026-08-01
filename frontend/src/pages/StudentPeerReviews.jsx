@@ -28,6 +28,13 @@ const StudentPeerReviews = () => {
     }
   };
 
+  const PEER_REVIEW_CRITERIA = [
+    { field: 'Innovation & Idea', maxMarks: 10 },
+    { field: 'Technical Implementation', maxMarks: 10 },
+    { field: 'Presentation & Report', maxMarks: 10 },
+    { field: 'Overall Impact', maxMarks: 10 }
+  ];
+
   const openEvaluationModal = (task) => {
     setSelectedTask(task);
     if (task.isEvaluated && task.myEvaluation) {
@@ -35,11 +42,9 @@ const StudentPeerReviews = () => {
     } else {
       // Initialize with empty marks
       const initData = {};
-      if (task.phase.evaluationCriteria) {
-        task.phase.evaluationCriteria.forEach(c => {
-          initData[c.field] = '';
-        });
-      }
+      PEER_REVIEW_CRITERIA.forEach(c => {
+        initData[c.field] = '';
+      });
       setMarksData(initData);
     }
   };
@@ -149,7 +154,7 @@ const StudentPeerReviews = () => {
             <p className="text-sm text-gray-500 mb-6">Phase {selectedTask.phase.phaseNumber} Peer Review</p>
 
             <form onSubmit={handleEvaluateSubmit} className="space-y-4">
-              {selectedTask.phase.evaluationCriteria?.map((crit, idx) => (
+              {PEER_REVIEW_CRITERIA.map((crit, idx) => (
                 <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
                   <label className="block text-sm font-bold text-gray-700 mb-1">{crit.field}</label>
                   <div className="flex justify-between items-center gap-4">
@@ -169,11 +174,19 @@ const StudentPeerReviews = () => {
                 </div>
               ))}
 
-              <div className="bg-indigo-50 p-4 rounded-lg flex justify-between items-center border border-indigo-100">
-                <span className="font-bold text-indigo-900">Total Score Given:</span>
-                <span className="font-bold text-indigo-700 text-xl">
-                  {Object.values(marksData).reduce((sum, val) => sum + (Number(val) || 0), 0)}
-                </span>
+              <div className="bg-indigo-50 p-4 rounded-lg flex flex-col gap-2 border border-indigo-100">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-indigo-900">Total Score:</span>
+                  <span className="font-bold text-indigo-700 text-xl">
+                    {Object.values(marksData).reduce((sum, val) => sum + (Number(val) || 0), 0)} / 40
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-indigo-200/50">
+                  <span className="font-bold text-indigo-900">Final Average (Out of 10):</span>
+                  <span className="font-bold text-indigo-700 text-xl">
+                    {(Object.values(marksData).reduce((sum, val) => sum + (Number(val) || 0), 0) / 4).toFixed(1)} / 10
+                  </span>
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
