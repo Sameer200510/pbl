@@ -298,10 +298,11 @@ const syncGradeToMoodle = async (moodleId, assignmentId, grade, feedback) => {
       moodlewsrestformat: 'json',
       assignmentid: trueAssignmentId,
       userid: moodleUserId,
-      grade: parseFloat(grade).toFixed(2),
-      attemptnumber: -1, // Try -1 first
+      grade: Number(grade), // use Number instead of toFixed(2) to avoid string issues
+      attemptnumber: -1,
       addattempt: 0,
       workflowstate: 'graded',
+      applytoall: 0, // CRITICAL: This was missing and caused invalid_parameter_exception
       'plugindata[assignfeedbackcomments_editor][text]': feedback,
       'plugindata[assignfeedbackcomments_editor][format]': 1
     });
