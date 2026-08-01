@@ -1,19 +1,32 @@
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  BookOpen, 
+  Users, 
+  UserCog, 
+  GraduationCap, 
+  Settings, 
+  BarChart3, 
+  FileText, 
+  RefreshCw, 
+  Eye, 
+  LogOut 
+} from 'lucide-react';
 import geuLogo from '../assets/geu-logo.webp';
 
 const AdminLayout = () => {
   const location = useLocation();
   const navItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
-    { name: 'PBL Management', path: '/admin/pbls', icon: '📚' },
-    { name: 'Team Management', path: '/admin/teams', icon: '👥' },
-    { name: 'Users (Moodle Sync)', path: '/admin/users', icon: '👥' },
-    { name: 'Faculty & Allocation', path: '/admin/faculty', icon: '👨‍🏫' },
-    { name: 'Phase Config', path: '/admin/phase-config', icon: '⚙️' },
-    { name: 'Reports', path: '/admin/reports', icon: '📈' },
-    { name: 'Results', path: '/admin/results', icon: '📝' },
-    { name: 'Re-evaluation', path: '/admin/reevaluation', icon: '🔄' },
-    { name: 'Micro Mentor', path: '/admin/micro-mentor', icon: '👁️' },
+    { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
+    { name: 'PBL Management', path: '/admin/pbls', icon: <BookOpen size={20} /> },
+    { name: 'Team Management', path: '/admin/teams', icon: <Users size={20} /> },
+    { name: 'Users (Moodle Sync)', path: '/admin/users', icon: <UserCog size={20} /> },
+    { name: 'Faculty & Allocation', path: '/admin/faculty', icon: <GraduationCap size={20} /> },
+    { name: 'Phase Config', path: '/admin/phase-config', icon: <Settings size={20} /> },
+    { name: 'Reports', path: '/admin/reports', icon: <BarChart3 size={20} /> },
+    { name: 'Results', path: '/admin/results', icon: <FileText size={20} /> },
+    { name: 'Re-evaluation', path: '/admin/reevaluation', icon: <RefreshCw size={20} /> },
+    { name: 'Micro Mentor', path: '/admin/micro-mentor', icon: <Eye size={20} /> },
   ];
 
   const userInfoString = localStorage.getItem('userInfo');
@@ -86,7 +99,7 @@ const AdminLayout = () => {
               }}
               className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-red-400 rounded-lg hover:bg-red-500/10 hover:text-red-300 transition-colors"
             >
-              <span className="mr-3 text-lg">🚪</span> Logout
+              <span className="mr-3 text-lg"><LogOut size={20} /></span> Logout
             </button>
           </div>
         </aside>

@@ -1,12 +1,13 @@
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
+import { Trash2, Settings, ArrowLeft, LogOut } from 'lucide-react';
 import geuLogo from '../assets/Graphic-Era-University-GEU-Dehradun-Logo.jpg';
 
 const SuperAdminLayout = () => {
   const location = useLocation();
   const navItems = [
-    { name: 'Data Wipe Zone', path: '/super-admin/dashboard', icon: '🗑️' },
-    { name: 'System Settings', path: '/super-admin/settings', icon: '⚙️' },
-    { name: 'Regular Admin Portal', path: '/admin/dashboard', icon: '🔙' },
+    { name: 'Data Wipe Zone', path: '/super-admin/dashboard', icon: <Trash2 size={20} /> },
+    { name: 'System Settings', path: '/super-admin/settings', icon: <Settings size={20} /> },
+    { name: 'Regular Admin Portal', path: '/admin/dashboard', icon: <ArrowLeft size={20} /> },
   ];
 
   const userInfoString = localStorage.getItem('userInfo');
@@ -79,7 +80,7 @@ const SuperAdminLayout = () => {
               }}
               className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-red-500 rounded-lg hover:bg-red-900/30 transition-colors"
             >
-              <span className="mr-3 text-lg">🚪</span> Logout
+              <span className="mr-3 text-lg"><LogOut size={20} /></span> Logout
             </button>
           </div>
         </aside>

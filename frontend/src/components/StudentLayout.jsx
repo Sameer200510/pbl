@@ -1,11 +1,12 @@
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
+import { Users, FileSignature, LogOut } from 'lucide-react';
 import geuLogo from '../assets/Graphic-Era-University-GEU-Dehradun-Logo.jpg';
 
 const StudentLayout = () => {
   const location = useLocation();
   const navItems = [
-    { name: 'My Team', path: '/student/dashboard', icon: '👥' },
-    { name: 'Peer Reviews', path: '/student/peer-reviews', icon: '📝' }
+    { name: 'My Team', path: '/student/dashboard', icon: <Users size={20} /> },
+    { name: 'Peer Reviews', path: '/student/peer-reviews', icon: <FileSignature size={20} /> }
   ];
 
   const userInfoString = localStorage.getItem('userInfo');
@@ -76,7 +77,7 @@ const StudentLayout = () => {
               }}
               className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-red-400 rounded-lg hover:bg-red-500/10 hover:text-red-300 transition-colors"
             >
-              <span className="mr-3 text-lg">🚪</span> Logout
+              <span className="mr-3 text-lg"><LogOut size={20} /></span> Logout
             </button>
           </div>
         </aside>
