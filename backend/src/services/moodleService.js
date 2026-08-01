@@ -289,7 +289,9 @@ const getMoodleAssignmentTimeline = async (assignmentId) => {
       'assignmentids[0]': assignmentId
     });
 
-    const response = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, params.toString());
+    const response = await axios.post(`${config.MOODLE_URL}/webservice/rest/server.php`, params.toString(), {
+      timeout: 10000 // 10 second timeout to prevent infinite hang
+    });
 
     // Moodle returns { courses: [ { assignments: [ { id, allowsubmissionsfromdate, duedate, ... } ] } ] }
     if (response.data && response.data.courses && response.data.courses.length > 0) {

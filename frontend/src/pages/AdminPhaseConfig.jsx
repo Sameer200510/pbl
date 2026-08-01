@@ -76,8 +76,11 @@ const AdminPhaseConfig = () => {
     setConfigs(newConfigs);
   };
 
+  const [loading, setLoading] = useState(false);
+
   const handleSave = async () => {
     if (!selectedPbl) return alert("Select a PBL first!");
+    setLoading(true);
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
       await axios.post(`/api/admin/pbl/${selectedPbl}/phase-config`, {
@@ -87,7 +90,9 @@ const AdminPhaseConfig = () => {
       });
       alert('Phase Configurations saved successfully!');
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save Phase config');
+      alert(err.response?.data?.message || 'Failed to save Phase config (Moodle might be unreachable)');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -194,8 +199,12 @@ const AdminPhaseConfig = () => {
               </div>
 
               <div className="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end">
-                <button onClick={handleSave} className="px-6 py-2 bg-primary text-white rounded-lg shadow-sm hover:bg-blue-600 font-medium">
-                  Save All Configurations
+                <button 
+                  onClick={handleSave} 
+                  disabled={loading}
+                  className={`px-6 py-2 text-white rounded-lg shadow-sm font-medium transition-colors ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                >
+                  {loading ? 'Saving...' : 'Save All Configurations'}
                 </button>
               </div>
             </div>
