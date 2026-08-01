@@ -165,7 +165,7 @@ const getMoodleCourseUsers = async (courseId) => {
   }
 };
 
-const uploadFileToMoodle = async (moodleId, assignmentId, localFilePath) => {
+const uploadFileToMoodle = async (moodleId, assignmentId, fileUrl) => {
   try {
     const config = await getMoodleConfig();
     
@@ -174,12 +174,21 @@ const uploadFileToMoodle = async (moodleId, assignmentId, localFilePath) => {
       return false;
     }
 
+    // --- Fetch File Stream from URL ---
+    console.log(`[MoodleSync] Fetching file from ${fileUrl}...`);
+    const fileResponse = await axios({
+      method: 'get',
+      url: fileUrl,
+      responseType: 'stream'
+    });
+    const filename = fileUrl.split('/').pop() || 'submission.pdf';
+
     // --- STEP 1: Upload File to Moodle Draft Area ---
     const form = new FormData();
     form.append('token', config.MOODLE_API_TOKEN);
     form.append('filearea', 'draft'); // Uploading to draft area
     form.append('itemid', 0); // 0 creates a new draft area
-    form.append('file', fs.createReadStream(localFilePath)); 
+    form.append('file', fileResponse.data, { filename }); 
 
     console.log(`[MoodleSync] Uploading file to draft area...`);
     const uploadRes = await axios.post(`${config.MOODLE_URL}/webservice/upload.php`, form, {

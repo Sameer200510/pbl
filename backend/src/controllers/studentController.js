@@ -360,9 +360,10 @@ const submitPhase = async (req, res, next) => {
     // Background sync to Moodle if phase is linked to Moodle Assignment
     if (phase.moodleAssignmentId) {
       const studentProfile = await prisma.student.findUnique({ where: { id: studentId } });
-      if (studentProfile?.moodleId) {
+      const moodleIdToUse = studentProfile?.moodleId || studentProfile?.enrollmentNumber;
+      if (moodleIdToUse) {
         const { uploadFileToMoodle } = require('../services/moodleService');
-        uploadFileToMoodle(studentProfile.moodleId, phase.moodleAssignmentId, providedSynopsisUrl).catch(err => {
+        uploadFileToMoodle(moodleIdToUse, phase.moodleAssignmentId, providedSynopsisUrl).catch(err => {
           console.error('Non-blocking Moodle upload error:', err);
         });
       }
