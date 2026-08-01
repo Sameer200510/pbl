@@ -303,15 +303,17 @@ const AdminUserManagement = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Roll No / ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sem/Sec</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {loading ? (
-              <tr><td colSpan="5" className="px-6 py-4 text-center dark:text-gray-300">Loading...</td></tr>
+              <tr><td colSpan="7" className="px-6 py-4 text-center dark:text-gray-300">Loading...</td></tr>
             ) : filteredUsers.length === 0 ? (
-              <tr><td colSpan="5" className="px-6 py-4 text-center dark:text-gray-300">No users found</td></tr>
+              <tr><td colSpan="7" className="px-6 py-4 text-center dark:text-gray-300">No users found</td></tr>
             ) : (
               filteredUsers.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
@@ -325,6 +327,12 @@ const AdminUserManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">{user.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{user.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                    {user.studentProfile?.enrollmentNumber || user.facultyProfile?.moodleId || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                    {user.studentProfile ? `Sem ${user.studentProfile.semester} / Sec ${user.studentProfile.section}` : '-'}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.role === 'FACULTY' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
                       {user.role}

@@ -207,7 +207,7 @@ const bulkUploadUsers = async (req, res, next) => {
         });
 
         if (roleEnum === 'FACULTY' && course1) {
-          const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
+          const pbl = await prisma.pbl.findFirst({ where: { subjectShort: { equals: course1, mode: 'insensitive' } } });
           if (pbl) await assignPblFacultyIds(pbl.id, newUser.facultyProfile.id);
         }
 
@@ -239,7 +239,7 @@ const bulkUploadUsers = async (req, res, next) => {
             });
           }
           if (course1) {
-            const pbl = await prisma.pbl.findFirst({ where: { subjectShort: course1 } });
+            const pbl = await prisma.pbl.findFirst({ where: { subjectShort: { equals: course1, mode: 'insensitive' } } });
             if (pbl) await assignPblFacultyIds(pbl.id, updatedUser.facultyProfile.id);
           }
         }
@@ -329,7 +329,7 @@ const bulkUploadUsersJson = async (req, res, next) => {
 
         if (roleEnum === 'FACULTY' && courses.length > 0) {
           for (const c of courses) {
-            const pbl = await prisma.pbl.findFirst({ where: { subjectShort: c } });
+            const pbl = await prisma.pbl.findFirst({ where: { subjectShort: { equals: c, mode: 'insensitive' } } });
             if (pbl) await assignPblFacultyIds(pbl.id, newUser.facultyProfile.id);
           }
         }
@@ -362,7 +362,7 @@ const bulkUploadUsersJson = async (req, res, next) => {
           }
           if (courses.length > 0) {
             for (const c of courses) {
-              const pbl = await prisma.pbl.findFirst({ where: { subjectShort: c } });
+              const pbl = await prisma.pbl.findFirst({ where: { subjectShort: { equals: c, mode: 'insensitive' } } });
               if (pbl) await assignPblFacultyIds(pbl.id, updatedUser.facultyProfile.id);
             }
           }
