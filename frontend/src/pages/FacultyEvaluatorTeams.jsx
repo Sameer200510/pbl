@@ -244,9 +244,15 @@ const FacultyEvaluatorTeams = () => {
     }
   };
 
+  const [selectedPbl, setSelectedPbl] = useState('All');
+
   if (loading) return <div className="p-8 text-center text-gray-500">Loading Evaluated Teams...</div>;
 
+  // Extract unique PBLs for the filter dropdown
+  const uniquePbls = [...new Map(teams.map(team => [team.pbl.id, team.pbl])).values()];
+
   const filteredTeams = teams.filter(team => {
+    if (selectedPbl !== 'All' && team.pbl.id !== selectedPbl) return false;
     const phase = team.pbl.phases?.find(p => p.phaseNumber === activePhaseFilter);
     if (!phase) return false;
     return team.phaseEvaluators?.some(pe => pe.phaseId === phase.id);
@@ -254,8 +260,24 @@ const FacultyEvaluatorTeams = () => {
 
   return (
     <div className="space-y-6 fade-in">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Evaluations Dashboard</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Evaluations Dashboard</h2>
+          {uniquePbls.length > 0 && (
+            <select
+              value={selectedPbl}
+              onChange={(e) => setSelectedPbl(e.target.value)}
+              className="px-3 py-1.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="All">All PBLs</option>
+              {uniquePbls.map(pbl => (
+                <option key={pbl.id} value={pbl.id}>
+                  {pbl.subject} (Sem {pbl.semester})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}

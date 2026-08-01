@@ -119,6 +119,8 @@ const FacultyMentorTeams = () => {
     }
   };
 
+  const [selectedPbl, setSelectedPbl] = useState('All');
+
   useEffect(() => {
     fetchTeams();
     fetchVenue();
@@ -147,10 +149,34 @@ const FacultyMentorTeams = () => {
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading Mentored Teams...</div>;
 
+  // Extract unique PBLs for the filter dropdown
+  const uniquePbls = [...new Map(teams.map(team => [team.pbl.id, team.pbl])).values()];
+
+  // Filter teams based on selected PBL
+  const filteredTeams = selectedPbl === 'All' 
+    ? teams 
+    : teams.filter(team => team.pbl.id === selectedPbl);
+
   return (
     <div className="space-y-6 fade-in">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Mentored Teams</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Mentored Teams</h2>
+          {uniquePbls.length > 0 && (
+            <select
+              value={selectedPbl}
+              onChange={(e) => setSelectedPbl(e.target.value)}
+              className="px-3 py-1.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="All">All PBLs</option>
+              {uniquePbls.map(pbl => (
+                <option key={pbl.id} value={pbl.id}>
+                  {pbl.subject} (Sem {pbl.semester})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
         <button 
           onClick={() => setShowVenueModal(true)} 
           className="px-4 py-2 bg-blue-100 text-blue-700 font-bold rounded-lg hover:bg-blue-200 border border-blue-200 shadow-sm flex items-center gap-2"
@@ -159,13 +185,13 @@ const FacultyMentorTeams = () => {
         </button>
       </div>
       
-      {teams.length === 0 ? (
+      {filteredTeams.length === 0 ? (
         <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
-          <p className="text-gray-500">No teams assigned to you as a Mentor yet.</p>
+          <p className="text-gray-500">No teams found for the selected PBL.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {teams.map((team) => (
+          {filteredTeams.map((team) => (
             <div key={team.id} className="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-100 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-4 border-b border-gray-100 dark:border-gray-700 pb-4">
                 <div>
