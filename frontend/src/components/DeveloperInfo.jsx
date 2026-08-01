@@ -17,7 +17,7 @@ const DeveloperInfo = () => {
   return (
     <>
       {/* Floating Info Button */}
-      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+      <div className="fixed bottom-3 right-3 z-50 flex items-center gap-3">
         {/* Tooltip */}
         <div 
           className={`px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg shadow-lg transition-all duration-300 transform ${
