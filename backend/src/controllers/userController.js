@@ -170,16 +170,30 @@ const bulkUploadUsers = async (req, res, next) => {
       const name = `${firstname} ${lastname}`.trim() || username;
       const roleEnum = role1.toLowerCase() === 'student' ? 'STUDENT' : 'FACULTY';
       
-      const existingUser = await prisma.user.findFirst({
-        where: { 
-          OR: [
-            { email }, 
-            { studentProfile: { enrollmentNumber: rollno } }, 
-            { studentProfile: { enrollmentNumber: username } },
-            { facultyProfile: { moodleId: username } }
-          ] 
-        }
+      let existingUser = await prisma.user.findUnique({
+        where: { email },
+        include: { studentProfile: true, facultyProfile: true }
       });
+
+      if (!existingUser && roleEnum === 'STUDENT') {
+        const conditions = [];
+        if (rollno) conditions.push({ enrollmentNumber: rollno }, { moodleId: rollno });
+        if (username && username !== rollno) conditions.push({ enrollmentNumber: username }, { moodleId: username });
+        
+        if (conditions.length > 0) {
+          const student = await prisma.student.findFirst({
+            where: { OR: conditions },
+            include: { user: { include: { studentProfile: true, facultyProfile: true } } }
+          });
+          if (student) existingUser = student.user;
+        }
+      } else if (!existingUser && roleEnum === 'FACULTY' && username) {
+        const faculty = await prisma.faculty.findFirst({
+          where: { moodleId: username },
+          include: { user: { include: { studentProfile: true, facultyProfile: true } } }
+        });
+        if (faculty) existingUser = faculty.user;
+      }
 
       if (!existingUser) {
         const passwordHash = await bcrypt.hash(rawPassword, 10);
@@ -213,9 +227,10 @@ const bulkUploadUsers = async (req, res, next) => {
 
         addedCount++;
       } else {
+        // Only update name if it matches the same email
         const updatedUser = await prisma.user.update({
           where: { id: existingUser.id },
-          data: { name },
+          data: { name: (existingUser.email === email ? name : existingUser.name) },
           include: { facultyProfile: true, studentProfile: true }
         });
 
@@ -291,16 +306,30 @@ const bulkUploadUsersJson = async (req, res, next) => {
       const name = `${firstname} ${lastname}`.trim() || username;
       const roleEnum = role1.toLowerCase() === 'student' ? 'STUDENT' : 'FACULTY';
       
-      const existingUser = await prisma.user.findFirst({
-        where: { 
-          OR: [
-            { email }, 
-            { studentProfile: { enrollmentNumber: rollno } }, 
-            { studentProfile: { enrollmentNumber: username } },
-            { facultyProfile: { moodleId: username } }
-          ] 
-        }
+      let existingUser = await prisma.user.findUnique({
+        where: { email },
+        include: { studentProfile: true, facultyProfile: true }
       });
+
+      if (!existingUser && roleEnum === 'STUDENT') {
+        const conditions = [];
+        if (rollno) conditions.push({ enrollmentNumber: rollno }, { moodleId: rollno });
+        if (username && username !== rollno) conditions.push({ enrollmentNumber: username }, { moodleId: username });
+        
+        if (conditions.length > 0) {
+          const student = await prisma.student.findFirst({
+            where: { OR: conditions },
+            include: { user: { include: { studentProfile: true, facultyProfile: true } } }
+          });
+          if (student) existingUser = student.user;
+        }
+      } else if (!existingUser && roleEnum === 'FACULTY' && username) {
+        const faculty = await prisma.faculty.findFirst({
+          where: { moodleId: username },
+          include: { user: { include: { studentProfile: true, facultyProfile: true } } }
+        });
+        if (faculty) existingUser = faculty.user;
+      }
 
       if (!existingUser) {
         const passwordHash = await bcrypt.hash(rawPassword, 10);
@@ -336,9 +365,10 @@ const bulkUploadUsersJson = async (req, res, next) => {
 
         addedCount++;
       } else {
+        // Only update name if it matches the same email
         const updatedUser = await prisma.user.update({
           where: { id: existingUser.id },
-          data: { name },
+          data: { name: (existingUser.email === email ? name : existingUser.name) },
           include: { facultyProfile: true, studentProfile: true }
         });
 
@@ -417,6 +447,39 @@ const updateUser = async (req, res, next) => {
 const deleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const user = await prisma.user.findUnique({ 
+      where: { id }, 
+      include: { studentProfile: true, facultyProfile: true } 
+    });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.studentProfile) {
+      const studentId = user.studentProfile.id;
+      // 1. Delete teams where student is the leader
+      await prisma.team.deleteMany({ where: { leaderId: studentId } });
+      // 2. Delete team memberships
+      await prisma.teamMember.deleteMany({ where: { studentId } });
+      // 3. Delete evaluations
+      await prisma.evaluation.deleteMany({ where: { studentId } });
+      // 4. Delete reevaluations
+      await prisma.reevaluationAssignment.deleteMany({ where: { studentId } });
+      // 5. Delete interaction records
+      await prisma.interactionRecord.deleteMany({ where: { studentId } });
+      // 6. Delete micro mentor evals
+      await prisma.microMentorEvaluation.deleteMany({ where: { reviewerStudentId: studentId } });
+      // 7. Delete student record
+      await prisma.student.delete({ where: { id: studentId } });
+    }
+
+    if (user.facultyProfile) {
+      const facultyId = user.facultyProfile.id;
+      await prisma.team.updateMany({ where: { mentorId: facultyId }, data: { mentorId: null, mentorIdFormatted: null } });
+      await prisma.pblFaculty.deleteMany({ where: { facultyId } });
+      await prisma.teamPhaseEvaluator.deleteMany({ where: { evaluatorId: facultyId } });
+      await prisma.mentorGrade.deleteMany({ where: { mentorId: facultyId } });
+      await prisma.faculty.delete({ where: { id: facultyId } });
+    }
+
     await prisma.user.delete({ where: { id } });
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
@@ -453,13 +516,11 @@ const resetUserPassword = async (req, res, next) => {
     if (user.role === 'STUDENT' && user.studentProfile) {
       moodleUsername = user.studentProfile.enrollmentNumber;
     } else if (user.role === 'FACULTY') {
-       // Moodle ID mapping if we have it, else use email handle maybe?
-       // Usually in Moodle, username can be their email or a specific ID.
-       // Let's assume email prefix if we don't store it explicitly.
        moodleUsername = user.email.split('@')[0]; 
     }
 
-    await moodleService.syncMoodlePassword(moodleUsername, newPassword);
+    const { syncMoodlePassword } = require('../services/moodleService');
+    await syncMoodlePassword(moodleUsername, newPassword).catch(() => {});
 
     res.json({ message: 'Password reset successfully and synced with Moodle (if configured).' });
   } catch (error) {
@@ -481,6 +542,45 @@ const bulkDeleteUsers = async (req, res, next) => {
     // Check if user is trying to delete themselves
     if (userIds.includes(req.user.id)) {
       return res.status(400).json({ message: 'You cannot delete your own account' });
+    }
+
+    // Find student profiles
+    const students = await prisma.student.findMany({
+      where: { userId: { in: userIds } },
+      select: { id: true }
+    });
+    const studentIds = students.map(s => s.id);
+
+    // Find faculty profiles
+    const faculties = await prisma.faculty.findMany({
+      where: { userId: { in: userIds } },
+      select: { id: true }
+    });
+    const facultyIds = faculties.map(f => f.id);
+
+    if (studentIds.length > 0) {
+      // 1. Delete teams where these students are leaders
+      await prisma.team.deleteMany({ where: { leaderId: { in: studentIds } } });
+      // 2. Delete team memberships
+      await prisma.teamMember.deleteMany({ where: { studentId: { in: studentIds } } });
+      // 3. Delete evaluations
+      await prisma.evaluation.deleteMany({ where: { studentId: { in: studentIds } } });
+      // 4. Delete reevaluations
+      await prisma.reevaluationAssignment.deleteMany({ where: { studentId: { in: studentIds } } });
+      // 5. Delete interaction records
+      await prisma.interactionRecord.deleteMany({ where: { studentId: { in: studentIds } } });
+      // 6. Delete micro mentor evals
+      await prisma.microMentorEvaluation.deleteMany({ where: { reviewerStudentId: { in: studentIds } } });
+      // 7. Delete student records
+      await prisma.student.deleteMany({ where: { id: { in: studentIds } } });
+    }
+
+    if (facultyIds.length > 0) {
+      await prisma.team.updateMany({ where: { mentorId: { in: facultyIds } }, data: { mentorId: null, mentorIdFormatted: null } });
+      await prisma.pblFaculty.deleteMany({ where: { facultyId: { in: facultyIds } } });
+      await prisma.teamPhaseEvaluator.deleteMany({ where: { evaluatorId: { in: facultyIds } } });
+      await prisma.mentorGrade.deleteMany({ where: { mentorId: { in: facultyIds } } });
+      await prisma.faculty.deleteMany({ where: { id: { in: facultyIds } } });
     }
 
     const deleteResult = await prisma.user.deleteMany({
