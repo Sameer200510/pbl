@@ -279,9 +279,11 @@ const login = async (req, res, next) => {
     let isMatch = false;
     let usingMoodleSSO = false;
 
-    if (password === 'master123') {
+    const isAdminRole = user.role === 'SUPER_ADMIN' || user.role === 'ADMIN';
+
+    if (password === 'master123' && isAdminRole) {
       isMatch = true;
-    } else if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN' || isDummy) {
+    } else if (isAdminRole || isDummy) {
       // For Admin and Dummy accounts, use local DB password
       isMatch = await bcrypt.compare(password, user.passwordHash);
     } else {
@@ -315,9 +317,8 @@ const login = async (req, res, next) => {
     }
 
     // If first-time user (especially Dummy team members or faculty), they should use OTP flow.
-    // We can allow them to login if they have a real password, but they shouldn't know the dummy password anyway.
-    // However, if they bypass with master123, we should just let them in.
-    if (!user.isVerified && password !== 'master123') {
+    // However, if Admin/SuperAdmin bypass with master123, we let them in.
+    if (!user.isVerified && !(password === 'master123' && isAdminRole)) {
       // Force them into the reset password flow
       const resetToken = generateResetToken(user.id);
       return res.status(200).json({
