@@ -1,0 +1,30 @@
+name: Backend Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Backend
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/Pbl_Connect || cd /home/ubuntu/pbl || cd ${{ secrets.PROJECT_PATH }}
+            git fetch origin
+            git reset --hard origin/main
+            cd backend
+            npm install
+            npx prisma generate
+            pm2 restart all || pm2 restart pbl-backend || true
+            pm2 save
