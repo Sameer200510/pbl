@@ -504,9 +504,9 @@ const FacultyEvaluatorTeams = () => {
               <button onClick={() => setSelectedTeam(null)} className="text-gray-500 hover:text-red-500 font-bold text-xl">✕</button>
             </div>
 
-            <div className="flex flex-1 overflow-hidden gap-6">
+            <div className="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden gap-6">
               {/* Left sidebar: Student List */}
-              <div className="w-1/3 border-r border-gray-100 dark:border-gray-700 pr-4 overflow-y-auto">
+              <div className="w-full md:w-1/3 md:border-r border-b md:border-b-0 border-gray-100 dark:border-gray-700 pb-4 md:pb-0 md:pr-4 overflow-y-auto">
                 <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-4">Select Student</h4>
                 <div className="space-y-2">
                   {selectedTeam.members.map(m => {

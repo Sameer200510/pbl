@@ -232,21 +232,21 @@ const AdminUserManagement = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">User Management</h1>
-        <div className="flex gap-3">
+    <div className="p-2 sm:p-4 md:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">User Management</h1>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {selectedUserIds.length > 0 && (
             <button 
               onClick={handleBulkDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition shadow-sm"
             >
               Delete Selected ({selectedUserIds.length})
             </button>
           )}
           <button 
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition shadow-sm"
           >
             + Add User Manually
           </button>
@@ -254,12 +254,12 @@ const AdminUserManagement = () => {
       </div>
 
       {/* Bulk Upload Section */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
-        <h2 className="text-xl font-bold mb-4 dark:text-white">Bulk Upload (Moodle Format CSV)</h2>
-        <p className="text-sm text-gray-500 mb-4">CSV Columns required: username, firstname, lastname, email, course1, role1, password. (role1 must be 'student' or 'editingteacher')</p>
+      <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <h2 className="text-lg sm:text-xl font-bold mb-2 dark:text-white">Bulk Upload (Moodle Format CSV)</h2>
+        <p className="text-xs sm:text-sm text-gray-500 mb-4">CSV Columns required: username, firstname, lastname, email, course1, role1, password. (role1 must be 'student' or 'editingteacher')</p>
         
-        {uploadError && <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-lg">{uploadError}</div>}
-        {uploadSuccess && <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-lg">{uploadSuccess}</div>}
+        {uploadError && <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-lg text-sm">{uploadError}</div>}
+        {uploadSuccess && <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-lg text-sm">{uploadSuccess}</div>}
 
         <div className="flex gap-4 items-center">
           <input 
@@ -280,7 +280,7 @@ const AdminUserManagement = () => {
             placeholder="Search by name, email, or role..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
           />
           <svg className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -289,11 +289,11 @@ const AdminUserManagement = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 <input 
                   type="checkbox" 
                   checked={filteredUsers.length > 0 && selectedUserIds.length === filteredUsers.length}
